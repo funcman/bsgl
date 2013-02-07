@@ -193,10 +193,13 @@ void CALL BSGL_Impl::System_SetStateInt(bsglIntState state, int value) {
             break;
         case BSGL_SCREENHEIGHT:
             nScreenHeight = value;
+            break;
         case BSGL_NUMOFLFPS:
             nLFPS = value;
+            break;
         case BSGL_NUMOFRFPS:
             nRFPS = value;
+            break;
         case BSGL_POLYMODE:
             nPolyMode = value;
             break;
@@ -212,6 +215,13 @@ int CALL BSGL_Impl::System_GetStateInt(bsglIntState state) {
             break;
         case BSGL_SCREENHEIGHT:
             return nScreenHeight;
+            break;
+        case BSGL_NUMOFLFPS:
+            return nLFPS;
+            break;
+        case BSGL_NUMOFRFPS:
+            return nRFPS;
+            break;
         case BSGL_POLYMODE:
             return nPolyMode;
             break;
@@ -309,18 +319,18 @@ void CALL BSGL_Impl::_LoadConfig(char const* filename) {
         return;
     }
     System_SetStateString(BSGL_CFGFILE, filename);
-    bool windowed = Config_GetInt("Screen", "Windowed", 0)==1 ? true : false;
+    bool windowed = Config_GetInt("Screen", "Windowed", bWindowed?1:0)==1 ? true : false;
     System_SetStateBool(BSGL_WINDOWED, windowed);
-    int width   = Config_GetInt("Screen", "Width", 640);
-    int height  = Config_GetInt("Screen", "Height", 480);
+    int width   = Config_GetInt("Screen", "Width", nScreenWidth);
+    int height  = Config_GetInt("Screen", "Height", nScreenHeight);
     System_SetStateInt(BSGL_SCREENWIDTH, width);
     System_SetStateInt(BSGL_SCREENHEIGHT, height);
-    int logic_fps   = Config_GetInt("FPS", "Logic", 25);
-    int render_fps  = Config_GetInt("FPS", "Render", 25);
+    int logic_fps   = Config_GetInt("FPS", "Logic", nLFPS);
+    int render_fps  = Config_GetInt("FPS", "Render", nRFPS);
     System_SetStateInt(BSGL_NUMOFLFPS, logic_fps);
     System_SetStateInt(BSGL_NUMOFRFPS, render_fps);
     char title[512];
-    strcpy(title, Config_GetString("Window", "Title", "BSGL GAME"));
+    strcpy(title, Config_GetString("Window", "Title", szTitle[0]?szTitle:"BSGL GAME"));
     System_SetStateString(BSGL_TITLE, title);
 }
 
