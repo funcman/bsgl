@@ -167,7 +167,8 @@ enum bsglIntState
     BSGL_SCREENHEIGHT    = 2,
     BSGL_SCREENBPP       = 3,
     BSGL_NUMOFLFPS       = 4,
-    BSGL_NUMOFRFPS       = 5
+    BSGL_NUMOFRFPS       = 5,
+    BSGL_POLYMODE        = 6
 };
 
 enum bsglStringState {

@@ -114,6 +114,7 @@ private:
     int         CurPrimType;
     int         CurBlendMode;
     HTEXTURE    CurTexture;
+    int         nPolyMode;
 
     int         nLFPS;          // Number of logic frames per second
     int         nRFPS;          // Number of render frames per second

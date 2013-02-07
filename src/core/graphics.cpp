@@ -30,6 +30,21 @@ void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
 }
 
 bool CALL BSGL_Impl::Gfx_BeginScene() {
+    switch( nPolyMode ) {
+    default:
+    case 0:
+        glEnable(GL_TEXTURE_2D);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        break;
+    case 1:
+        glEnable(GL_TEXTURE_2D);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        break;
+    case 2:
+        glDisable(GL_TEXTURE_2D);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        break;
+    }
     return true;
 }
 

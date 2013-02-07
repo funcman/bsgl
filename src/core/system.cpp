@@ -197,6 +197,9 @@ void CALL BSGL_Impl::System_SetStateInt(bsglIntState state, int value) {
             nLFPS = value;
         case BSGL_NUMOFRFPS:
             nRFPS = value;
+        case BSGL_POLYMODE:
+            nPolyMode = value;
+            break;
         default:
             break;
     }
@@ -209,6 +212,9 @@ int CALL BSGL_Impl::System_GetStateInt(bsglIntState state) {
             break;
         case BSGL_SCREENHEIGHT:
             return nScreenHeight;
+        case BSGL_POLYMODE:
+            return nPolyMode;
+            break;
         default:
             break;
     }
@@ -292,6 +298,7 @@ BSGL_Impl::BSGL_Impl() {
     fTime = 0.0f;
     fDeltaTime = 0.0f;
     nFPS = 0;
+    nPolyMode = 0;
 
     this->_key_buf = new unsigned int[_KEY_BUF_SIZE];
     memset(_key_buf, 0, _KEY_BUF_SIZE*sizeof(unsigned int));
