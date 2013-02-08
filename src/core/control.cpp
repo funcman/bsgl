@@ -16,6 +16,18 @@ void CALL BSGL_Impl::Control_GetState() {
     Uint8* keystates = SDL_GetKeyState(NULL);
     Uint8 mouse_mask = SDL_GetMouseState(&_mouse_x, &_mouse_y);
 
+    if( mouse_mask & SDL_BUTTON(1) ) {
+        _key_buf[INP_MOUSEL] = _key_buf[INP_MOUSEL] << 1 | 1;
+    }else {
+        _key_buf[INP_MOUSEL] = _key_buf[INP_MOUSEL] << 1;
+    }
+
+    if( mouse_mask & SDL_BUTTON(2) ) {
+        _key_buf[INP_MOUSER] = _key_buf[INP_MOUSER] << 1 | 1;
+    }else {
+        _key_buf[INP_MOUSER] = _key_buf[INP_MOUSER] << 1;
+    }
+
     if( keystates[SDLK_a] ) {
         _key_buf[INP_A] = _key_buf[INP_A] << 1 | 1;
     }else {
@@ -232,22 +244,196 @@ void CALL BSGL_Impl::Control_GetState() {
         _key_buf[INP_0] = _key_buf[INP_0] << 1;
     }
 
+    if( keystates[SDLK_F1] ) {
+        _key_buf[INP_F1] = _key_buf[INP_F1] << 1 | 1;
+    }else {
+        _key_buf[INP_F1] = _key_buf[INP_F1] << 1;
+    }
+
+    if( keystates[SDLK_F2] ) {
+        _key_buf[INP_F2] = _key_buf[INP_F2] << 1 | 1;
+    }else {
+        _key_buf[INP_F2] = _key_buf[INP_F2] << 1;
+    }
+
+    if( keystates[SDLK_F3] ) {
+        _key_buf[INP_F3] = _key_buf[INP_F3] << 1 | 1;
+    }else {
+        _key_buf[INP_F3] = _key_buf[INP_F3] << 1;
+    }
+
+    if( keystates[SDLK_F4] ) {
+        _key_buf[INP_F4] = _key_buf[INP_F4] << 1 | 1;
+    }else {
+        _key_buf[INP_F4] = _key_buf[INP_F4] << 1;
+    }
+
+    if( keystates[SDLK_F5] ) {
+        _key_buf[INP_F5] = _key_buf[INP_F5] << 1 | 1;
+    }else {
+        _key_buf[INP_F5] = _key_buf[INP_F5] << 1;
+    }
+
+    if( keystates[SDLK_F6] ) {
+        _key_buf[INP_F6] = _key_buf[INP_F6] << 1 | 1;
+    }else {
+        _key_buf[INP_F6] = _key_buf[INP_F6] << 1;
+    }
+
+    if( keystates[SDLK_F7] ) {
+        _key_buf[INP_F7] = _key_buf[INP_F7] << 1 | 1;
+    }else {
+        _key_buf[INP_F7] = _key_buf[INP_F7] << 1;
+    }
+
+    if( keystates[SDLK_F8] ) {
+        _key_buf[INP_F8] = _key_buf[INP_F8] << 1 | 1;
+    }else {
+        _key_buf[INP_F8] = _key_buf[INP_F8] << 1;
+    }
+
+    if( keystates[SDLK_F9] ) {
+        _key_buf[INP_F9] = _key_buf[INP_F9] << 1 | 1;
+    }else {
+        _key_buf[INP_F9] = _key_buf[INP_F9] << 1;
+    }
+
+    if( keystates[SDLK_F10] ) {
+        _key_buf[INP_F10] = _key_buf[INP_F10] << 1 | 1;
+    }else {
+        _key_buf[INP_F10] = _key_buf[INP_F10] << 1;
+    }
+
+    if( keystates[SDLK_F11] ) {
+        _key_buf[INP_F11] = _key_buf[INP_F11] << 1 | 1;
+    }else {
+        _key_buf[INP_F11] = _key_buf[INP_F11] << 1;
+    }
+
+    if( keystates[SDLK_F12] ) {
+        _key_buf[INP_F12] = _key_buf[INP_F12] << 1 | 1;
+    }else {
+        _key_buf[INP_F12] = _key_buf[INP_F12] << 1;
+    }
+
     if( keystates[SDLK_ESCAPE] ) {
         _key_buf[INP_ESC] = _key_buf[INP_ESC] << 1 | 1;
     }else {
         _key_buf[INP_ESC] = _key_buf[INP_ESC] << 1;
     }
 
-    if( mouse_mask & SDL_BUTTON(1) ) {
-        _key_buf[INP_MOUSEL] = _key_buf[INP_MOUSEL] << 1 | 1;
+    if( keystates[SDLK_TAB] ) {
+        _key_buf[INP_TAB] = _key_buf[INP_TAB] << 1 | 1;
     }else {
-        _key_buf[INP_MOUSEL] = _key_buf[INP_MOUSEL] << 1;
+        _key_buf[INP_TAB] = _key_buf[INP_TAB] << 1;
     }
 
-    if( mouse_mask & SDL_BUTTON(2) ) {
-        _key_buf[INP_MOUSER] = _key_buf[INP_MOUSER] << 1 | 1;
+    if( keystates[SDLK_CAPSLOCK] ) {
+        _key_buf[INP_CAPSLOCK] = _key_buf[INP_CAPSLOCK] << 1 | 1;
     }else {
-        _key_buf[INP_MOUSER] = _key_buf[INP_MOUSER] << 1;
+        _key_buf[INP_CAPSLOCK] = _key_buf[INP_CAPSLOCK] << 1;
+    }
+
+    if( keystates[SDLK_LSHIFT] ) {
+        _key_buf[INP_SHIFTL] = _key_buf[INP_SHIFTL] << 1 | 1;
+    }else {
+        _key_buf[INP_SHIFTL] = _key_buf[INP_SHIFTL] << 1;
+    }
+
+    if( keystates[SDLK_RSHIFT] ) {
+        _key_buf[INP_SHIFTR] = _key_buf[INP_SHIFTR] << 1 | 1;
+    }else {
+        _key_buf[INP_SHIFTR] = _key_buf[INP_SHIFTR] << 1;
+    }
+
+    if( keystates[SDLK_LCTRL] ) {
+        _key_buf[INP_CTRLL] = _key_buf[INP_CTRLL] << 1 | 1;
+    }else {
+        _key_buf[INP_CTRLL] = _key_buf[INP_CTRLL] << 1;
+    }
+
+    if( keystates[SDLK_RCTRL] ) {
+        _key_buf[INP_CTRLR] = _key_buf[INP_CTRLR] << 1 | 1;
+    }else {
+        _key_buf[INP_CTRLR] = _key_buf[INP_CTRLR] << 1;
+    }
+
+    if( keystates[SDLK_LALT] ) {
+        _key_buf[INP_ALTL] = _key_buf[INP_ALTL] << 1 | 1;
+    }else {
+        _key_buf[INP_ALTL] = _key_buf[INP_ALTL] << 1;
+    }
+
+    if( keystates[SDLK_RALT] ) {
+        _key_buf[INP_ALTR] = _key_buf[INP_ALTR] << 1 | 1;
+    }else {
+        _key_buf[INP_ALTR] = _key_buf[INP_ALTR] << 1;
+    }
+
+    if( keystates[SDLK_SPACE] ) {
+        _key_buf[INP_SPACE] = _key_buf[INP_SPACE] << 1 | 1;
+    }else {
+        _key_buf[INP_SPACE] = _key_buf[INP_SPACE] << 1;
+    }
+
+    if( keystates[SDLK_RETURN] ) {
+        _key_buf[INP_ENTER] = _key_buf[INP_ENTER] << 1 | 1;
+    }else {
+        _key_buf[INP_ENTER] = _key_buf[INP_ENTER] << 1;
+    }
+
+    if( keystates[SDLK_DELETE] ) {
+        _key_buf[INP_DEL] = _key_buf[INP_DEL] << 1 | 1;
+    }else {
+        _key_buf[INP_DEL] = _key_buf[INP_DEL] << 1;
+    }
+
+    if( keystates[SDLK_UP] ) {
+        _key_buf[INP_UP] = _key_buf[INP_UP] << 1 | 1;
+    }else {
+        _key_buf[INP_UP] = _key_buf[INP_UP] << 1;
+    }
+
+    if( keystates[SDLK_DOWN] ) {
+        _key_buf[INP_DOWN] = _key_buf[INP_DOWN] << 1 | 1;
+    }else {
+        _key_buf[INP_DOWN] = _key_buf[INP_DOWN] << 1;
+    }
+
+    if( keystates[SDLK_LEFT] ) {
+        _key_buf[INP_LEFT] = _key_buf[INP_LEFT] << 1 | 1;
+    }else {
+        _key_buf[INP_LEFT] = _key_buf[INP_LEFT] << 1;
+    }
+
+    if( keystates[SDLK_RIGHT] ) {
+        _key_buf[INP_RIGHT] = _key_buf[INP_RIGHT] << 1 | 1;
+    }else {
+        _key_buf[INP_RIGHT] = _key_buf[INP_RIGHT] << 1;
+    }
+
+    if( keystates[SDLK_HOME] ) {
+        _key_buf[INP_HOME] = _key_buf[INP_HOME] << 1 | 1;
+    }else {
+        _key_buf[INP_HOME] = _key_buf[INP_HOME] << 1;
+    }
+
+    if( keystates[SDLK_END] ) {
+        _key_buf[INP_END] = _key_buf[INP_END] << 1 | 1;
+    }else {
+        _key_buf[INP_END] = _key_buf[INP_END] << 1;
+    }
+
+    if( keystates[SDLK_PAGEUP] ) {
+        _key_buf[INP_PGUP] = _key_buf[INP_PGUP] << 1 | 1;
+    }else {
+        _key_buf[INP_PGUP] = _key_buf[INP_PGUP] << 1;
+    }
+
+    if( keystates[SDLK_PAGEDOWN] ) {
+        _key_buf[INP_PGDN] = _key_buf[INP_PGDN] << 1 | 1;
+    }else {
+        _key_buf[INP_PGDN] = _key_buf[INP_PGDN] << 1;
     }
 }
 
@@ -276,10 +462,10 @@ bool CALL BSGL_Impl::Control_IsUp(int key) {
 }
 
 int  CALL BSGL_Impl::Control_GetMouseX() {
-return _mouse_x;
+    return _mouse_x;
 }
 
 int  CALL BSGL_Impl::Control_GetMouseY() {
-return _mouse_y;
+    return _mouse_y;
 }
 
