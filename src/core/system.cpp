@@ -285,6 +285,8 @@ void CALL BSGL_Impl::System_Log(const char *szFormat, ...) {
 
     va_start(vl, szFormat);
     vfprintf(fp, szFormat, vl);
+    va_end(vl);
+    va_start(vl, szFormat);
     vfprintf(stdout, szFormat, vl);
     va_end(vl);
 
