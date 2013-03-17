@@ -312,7 +312,7 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
     glTexSubImage2D(GL_TEXTURE_2D, 0, _x, _y, _w, _h, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data);
 }
 
-void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//测试修改wh为负值的情况
+void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//remember to test w and h are negative
     if( 0 == w || 0== h ) {
         x = 0;
         y = 0;
@@ -334,7 +334,7 @@ void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//测试修改
     gluOrtho2D((GLfloat)x, (GLfloat)(x+w), (GLfloat)y, (GLfloat)(y+h));
 }
 
-// 干！这个函数写得真折腾！！！
+// fuck! the function is difficult to write.
 void CALL BSGL_Impl::Gfx_SetTransform(float x, float y, float dx, float dy, float rot, float hscale, float vscale) {
     _render_batch();
     if( 0.0f == hscale || 0.0f == vscale ) {
@@ -354,7 +354,7 @@ bool BSGL_Impl::_GfxInit() {
     const SDL_VideoInfo* video_info;
     int video_flags;
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);//错误判断
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);//remember to test the return value
     video_info = SDL_GetVideoInfo();
     video_flags = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
     if( video_info->hw_available ) {
@@ -365,7 +365,7 @@ bool BSGL_Impl::_GfxInit() {
     if( !bWindowed ) {
         video_flags |= SDL_FULLSCREEN;
     }
-    //给OGL设置属性,双缓冲
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -407,7 +407,7 @@ void BSGL_Impl::_render_batch(bool bEndScene) {
             break;
         case BSGLPRIM_TRIPLES:
             glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
-            glDrawArrays(GL_TRIANGLES, 0, nPrim*BSGLPRIM_TRIPLES);//待測
+            glDrawArrays(GL_TRIANGLES, 0, nPrim*BSGLPRIM_TRIPLES);//remember to test
             break;
         case BSGLPRIM_QUADS:
             glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
