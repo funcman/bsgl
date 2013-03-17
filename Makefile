@@ -44,6 +44,18 @@ tinyxmlerror.o: src/dependencies/tinyxml/tinyxml.h src/dependencies/tinyxml/tiny
 tinyxmlparser.o: src/dependencies/tinyxml/tinyxml.h src/dependencies/tinyxml/tinyxmlparser.cpp
 	$(CC) $(CFLAGS) src/dependencies/tinyxml/tinyxmlparser.cpp -c -Isrc/dependencies/tinyxml
 
+install: all
+	cp include/*.h /usr/include
+	mv libbsgl.a /usr/lib
+	rm -f *.o
+
+uninstall:
+	rm /usr/lib/libbsgl.a
+	rm /usr/include/bsgl.h
+	rm /usr/include/bsglanim.h
+	rm /usr/include/bsglrect.h
+	rm /usr/include/bsglsprite.h
+
 clean:
 	rm -f *.o
 	rm -f libbsgl.a
