@@ -481,15 +481,22 @@ int next_p2(int num) {
 }
 
 struct _BMP* _LoadBMP(char const* filename) {
+#if defined(WIN32)
 #pragma pack(push)
 #pragma pack(1)
+#endif
     struct _BITMAPFILEHEADER {
         unsigned short  bmp_flag;
         unsigned int    size;
         unsigned short  reserved1;
         unsigned short  reserved2;
         unsigned int    offset;
-    } header; ///__attribute__ ((__packed__)) header;
+    }
+#if defined(__GNUC__)
+    __attribute__ ((__packed__)) header;
+#else
+    header;
+#endif
     struct _BITMAPINFOHEADER {
         unsigned int    size;
         int             width;
@@ -502,8 +509,15 @@ struct _BMP* _LoadBMP(char const* filename) {
         int             y_pels_per_meter;
         unsigned int    color_used;
         unsigned int    color_important;
-    } info; ///__attribute__ ((__packed__)) info;
+    }
+#if defined(__GNUC__)
+    __attribute__ ((__packed__)) info;
+#else
+    info;
+#endif
+#if defined(WIN32)
 #pragma pack(pop)
+#endif
     FILE* fp;
     struct _BMP* bmp;
     fp = fopen(filename, "rb");
