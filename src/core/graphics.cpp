@@ -30,6 +30,7 @@ void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
 }
 
 bool CALL BSGL_Impl::Gfx_BeginScene() {
+#if !defined(CC_TARGET_OS_IPHONE)
     switch( nPolyMode ) {
     default:
     case 0:
@@ -45,6 +46,7 @@ bool CALL BSGL_Impl::Gfx_BeginScene() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         break;
     }
+#endif
     return true;
 }
 
@@ -64,7 +66,10 @@ void CALL BSGL_Impl::Gfx_RenderTriple(const bsglTriple* triple) {
             _SetBlendMode(triple->blend);
         }
         if( CurTexture != triple->tex ) {
-            glBindTexture(GL_TEXTURE_2D, *(GLuint*)triple->tex);
+            if( triple->tex )
+                glBindTexture(GL_TEXTURE_2D, *(GLuint*)triple->tex);
+            else
+                glBindTexture(GL_TEXTURE_2D, 0);
             CurTexture = triple->tex;
         }
     }
@@ -84,7 +89,10 @@ void CALL BSGL_Impl::Gfx_RenderQuad(const bsglQuad* quad) {
             _SetBlendMode(quad->blend);
         }
         if( CurTexture != quad->tex ) {
-            glBindTexture(GL_TEXTURE_2D, *(GLuint*)quad->tex);
+            if( quad->tex )
+                glBindTexture(GL_TEXTURE_2D, *(GLuint*)quad->tex);
+            else
+                glBindTexture(GL_TEXTURE_2D, 0);
             CurTexture = quad->tex;
         }
     }
@@ -156,6 +164,10 @@ HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
     texItem->width = ow;
     texItem->height = oh;
     texItem->next = textures;
+#if defined(CC_TARGET_OS_IPHONE)
+    texItem->tex_width = tw;
+    texItem->tex_height = th;
+#endif
     textures = texItem;
 
     return (HTEXTURE)texture;
@@ -187,6 +199,10 @@ HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMi
     texItem->width = texture_image->ow;
     texItem->height = texture_image->oh;
     texItem->next = textures;
+#if defined(CC_TARGET_OS_IPHONE)
+    texItem->tex_width = texture_image->tw;
+    texItem->tex_height = texture_image->th;
+#endif
     textures = texItem;
 
     _FreeBMP(texture_image);
@@ -217,7 +233,6 @@ void CALL BSGL_Impl::Texture_Free(HTEXTURE tex) {
 }
 
 int CALL BSGL_Impl::Texture_GetWidth(HTEXTURE tex, bool bOriginal) {
-    GLint width;
     TextureList* texItem = textures;
 
     if( bOriginal ) {
@@ -230,14 +245,23 @@ int CALL BSGL_Impl::Texture_GetWidth(HTEXTURE tex, bool bOriginal) {
         return 0;
     }
 
+#if !defined(CC_TARGET_OS_IPHONE)
+    GLint width;
     glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-
     return (int)width;
+#else
+    while( texItem ) {
+        if( texItem->tex == tex ) {
+            return texItem->tex_width;
+        }
+        texItem = texItem->next;
+    }
+    return 0;
+#endif
 }
 
 int CALL BSGL_Impl::Texture_GetHeight(HTEXTURE tex, bool bOriginal) {
-    GLint height;
     TextureList* texItem = textures;
 
     if( bOriginal ) {
@@ -250,10 +274,20 @@ int CALL BSGL_Impl::Texture_GetHeight(HTEXTURE tex, bool bOriginal) {
         return 0;
     }
 
+#if !defined(CC_TARGET_OS_IPHONE)
+    GLint height;
     glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-
     return (int)height;
+#else
+    while( texItem ) {
+        if( texItem->tex == tex ) {
+            return texItem->tex_height;
+        }
+        texItem = texItem->next;
+    }
+    return 0;
+#endif
 }
 
 DWORD* CALL BSGL_Impl::Texture_CreateData(int width, int height) {
@@ -268,6 +302,7 @@ DWORD* CALL BSGL_Impl::Texture_CreateData(int width, int height) {
 }
 
 DWORD* CALL BSGL_Impl::Texture_LoadData(HTEXTURE tex) {
+#if !defined(CC_TARGET_OS_IPHONE)
     int width;
     int height;
     DWORD* data;
@@ -279,6 +314,9 @@ DWORD* CALL BSGL_Impl::Texture_LoadData(HTEXTURE tex) {
     glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data);
 
     return data;
+#else
+    return 0;
+#endif
 }
 
 void CALL BSGL_Impl::Texture_FreeData(DWORD* data) {
@@ -295,7 +333,17 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
 
     if( 0 == width ) {
         _x = 0;
+#if !defined(CC_TARGET_OS_IPHONE)
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &_w);
+#else
+        TextureList* texItem = textures;
+        while( texItem ) {
+            if( texItem->tex == tex ) {
+                _w = texItem->tex_width;
+            }
+            texItem = texItem->next;
+        }
+#endif
     }else {
         _x = x;
         _w = width;
@@ -303,7 +351,17 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
 
     if( 0 == height ) {
         _y = 0;
+#if !defined(CC_TARGET_OS_IPHONE)
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &_h);
+#else
+        TextureList* texItem = textures;
+        while( texItem ) {
+            if( texItem->tex == tex ) {
+                _h = texItem->tex_height;
+            }
+            texItem = texItem->next;
+        }
+#endif
     }else {
         _y = y;
         _h = height;
@@ -331,7 +389,11 @@ void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//remember to 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glScalef(1.0f, -1.0f, 1.0f);
+#if !defined(CC_TARGET_OS_IPHONE)
     gluOrtho2D((GLfloat)x, (GLfloat)(x+w), (GLfloat)y, (GLfloat)(y+h));
+#else
+    glOrthof((GLfloat)x, (GLfloat)(x+w), (GLfloat)y, (GLfloat)(y+h), -1.0f, 1.0f);
+#endif
 }
 
 // fuck! the function is difficult to write.
@@ -351,6 +413,7 @@ void CALL BSGL_Impl::Gfx_SetTransform(float x, float y, float dx, float dy, floa
 }
 
 bool BSGL_Impl::_GfxInit() {
+#if !defined(CC_TARGET_OS_IPHONE)
     const SDL_VideoInfo* video_info;
     int video_flags;
 
@@ -374,8 +437,21 @@ bool BSGL_Impl::_GfxInit() {
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
     pSurface = SDL_SetVideoMode(nScreenWidth, nScreenHeight, nScreenBPP, video_flags);
+#endif
     _InitOGL();
     _Resize(nScreenWidth, nScreenHeight);
+
+    GLubyte* iptr = indexes = new GLubyte[VERTEX_BUFFER_SIZE*6/4];
+    GLubyte n = 0;
+    for( int i=0; i<VERTEX_BUFFER_SIZE/4; ++i ) {
+        *iptr++ = n;
+        *iptr++ = n+1;
+        *iptr++ = n+2;
+        *iptr++ = n+2;
+        *iptr++ = n+3;
+        *iptr++ = n;
+        n+=4;
+    }
 
     VertArray = new bsglVertex[VERTEX_BUFFER_SIZE];
     if( 0 == VertArray ) {
@@ -394,24 +470,42 @@ bool BSGL_Impl::_GfxInit() {
 
 void BSGL_Impl::_GfxDone() {
     delete[] VertArray;
+    delete[] indexes;
     while(textures) {
         Texture_Free(textures->tex);
     }
+#if !defined(CC_TARGET_OS_IPHONE)
     SDL_Quit();
+#endif
 }
 
 void BSGL_Impl::_render_batch(bool bEndScene) {
+#if defined(CC_TARGET_OS_IPHONE)
+    bsglVertex vv;
+#endif
     if( nPrim != 0 ) {
         switch(CurPrimType) {
         case BSGLPRIM_LINES:
             break;
         case BSGLPRIM_TRIPLES:
+#if !defined(CC_TARGET_OS_IPHONE)
             glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
+#else
+            glTexCoordPointer(2, GL_FLOAT, sizeof(bsglVertex), VertArray);
+            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.color)-(unsigned char*)&(vv.tx)));
+            glVertexPointer(3, GL_FLOAT, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.x)-(unsigned char*)&(vv.tx)));
+#endif
             glDrawArrays(GL_TRIANGLES, 0, nPrim*BSGLPRIM_TRIPLES);//remember to test
             break;
         case BSGLPRIM_QUADS:
+#if !defined(CC_TARGET_OS_IPHONE)
             glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
-            glDrawArrays(GL_QUADS, 0, nPrim*BSGLPRIM_QUADS);
+#else
+            glTexCoordPointer(2, GL_FLOAT, sizeof(bsglVertex), VertArray);
+            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.color)-(unsigned char*)&(vv.tx)));
+            glVertexPointer(3, GL_FLOAT, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.x)-(unsigned char*)&(vv.tx)));
+#endif
+            glDrawElements(GL_TRIANGLES, nPrim*6, GL_UNSIGNED_BYTE, indexes);
             break;
         default:
             break;
@@ -455,18 +549,40 @@ void _InitOGL() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#if defined(CC_TARGET_OS_IPHONE)
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#endif
 }
+
+#if defined(CC_TARGET_OS_IPHONE)
+extern int Portrait;
+extern float mmGetViewContentScaleFactor();
+extern int mmGetViewWidth();
+extern int mmGetViewHeight();
+#endif
 
 void _Resize(int width, int height) {
     if( height == 0 ) {
         height = 1;
     }
-
+#if !defined(CC_TARGET_OS_IPHONE)
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+#else
+    glViewport(0, 0, mmGetViewWidth()*mmGetViewContentScaleFactor(), mmGetViewHeight()*mmGetViewContentScaleFactor());
+#endif
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glScalef(1.0f, -1.0f, 1.0f);
+#if !defined(CC_TARGET_OS_IPHONE)
     gluOrtho2D(0.0, (GLfloat)width, 0.0, (GLfloat)height);
+#else
+if( Portrait )
+    glOrthof(0.0, mmGetViewWidth(), 0.0, mmGetViewHeight(), -1.0, 1.0);
+else
+    glOrthof(0.0, mmGetViewHeight(), 0.0, mmGetViewWidth(), -1.0, 1.0);
+#endif
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -479,6 +595,10 @@ int next_p2(int num) {
     }
     return r;
 }
+
+#if defined(CC_TARGET_OS_IPHONE)
+extern std::string mmGetFullPath(char const* filename);
+#endif
 
 struct _BMP* _LoadBMP(char const* filename) {
 #if defined(WIN32)
@@ -520,7 +640,11 @@ struct _BMP* _LoadBMP(char const* filename) {
 #endif
     FILE* fp;
     struct _BMP* bmp;
+#if !defined(CC_TARGET_OS_IPHONE)
     fp = fopen(filename, "rb");
+#else
+    fp = fopen(mmGetFullPath(filename).c_str(), "rb");
+#endif
     if( NULL == fp ) {
         return NULL;
     }

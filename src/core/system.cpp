@@ -51,8 +51,14 @@ bool CALL BSGL_Impl::System_Initiate() {
     }
 
     fTime = 0.0f;
+#if defined(CC_TARGET_OS_IPHONE)
+    fStartTime = 0.0f;
+#endif
+
     bInit = true;
+#if !defined(CC_TARGET_OS_IPHONE)
     SDL_WM_SetCaption(szTitle, NULL);
+#endif
 
     return true;
 }
@@ -64,7 +70,13 @@ void CALL BSGL_Impl::System_Shutdown() {
     System_Log("The End.");
 }
 
+#if defined(CC_TARGET_OS_IPHONE)
+extern void mmSetLogic(FrameFunc func,int fps);
+extern void mmSetRender(FrameFunc func, int fps, float* dt);
+#endif
+
 bool CALL BSGL_Impl::System_Start() {
+#if !defined(CC_TARGET_OS_IPHONE)
     SDL_Event event;
     bool done = false;
     float time = SDL_GetTicks() / 1000.0f;
@@ -153,11 +165,16 @@ bool CALL BSGL_Impl::System_Start() {
             time4fps += 1.0f;
         }
 
-
         SDL_Delay(1);
     }
-
     return true;
+#else
+    if( fpLogicFunc )
+        mmSetLogic(fpLogicFunc, nLFPS);
+    if( fpRenderFunc )
+        mmSetRender(fpRenderFunc, nRFPS, &fDeltaTime);
+    return true;
+#endif
 }
 
 void CALL BSGL_Impl::System_SetStateBool(bsglBoolState state, bool value) {
@@ -232,7 +249,7 @@ int CALL BSGL_Impl::System_GetStateInt(bsglIntState state) {
 }
 
 void CALL BSGL_Impl::System_SetStateString(bsglStringState state, const char* value) {
-    switch( state ) {SDL_GL_SwapBuffers();
+    switch( state ) {
         case BSGL_TITLE:
             if( value != 0 ) {
                 strcpy(szTitle, value);
@@ -310,6 +327,11 @@ BSGL_Impl::BSGL_Impl() {
     fpLogicFunc     = 0;
     fpRenderFunc    = 0;
     fTime = 0.0f;
+#if defined(CC_TARGET_OS_IPHONE)
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+    fStartTime = tv.tv_sec  + tv.tv_usec / 1000000.0f;
+#endif
     fDeltaTime = 0.0f;
     nFPS = 0;
     nPolyMode = 0;

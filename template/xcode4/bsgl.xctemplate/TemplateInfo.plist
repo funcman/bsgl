@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Ancestors</key>
+	<array>
+		<string>bm.bsgl.bundlebase</string>
+		<string>bm.bsgl.iosbase</string>
+		<string>bm.bsgl.libbsgl</string>
+		<string>bm.bsgl.libtinyxml</string>
+	</array>
+	<key>Concrete</key>
+	<true/>
+	<key>Definitions</key>
+	<dict>
+		<key>src/main.cpp</key>
+		<dict>
+			<key>Group</key>
+			<string>src</string>
+			<key>Path</key>
+			<string>src/main.cpp</string>
+		</dict>
+		<key>Prefix.pch</key>
+		<dict>
+			<key>Group</key>
+			<string>Supporting Files</string>
+			<key>Path</key>
+			<string>Prefix.pch</string>
+			<key>TargetIndices</key>
+			<array/>
+		</dict>
+	</dict>
+	<key>Description</key>
+	<string>This template provides a starting point for an application that uses cocos2d-x for iOS, including CocosDenshion </string>
+	<key>Identifier</key>
+	<string>bm.bsgl.bsglOnlyIOSTemplate</string>
+	<key>Kind</key>
+	<string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+	<key>Nodes</key>
+	<array>
+		<string>Prefix.pch</string>
+		<string>src/main.cpp</string>
+	</array>
+	<key>Options</key>
+	<array>
+		<dict>
+			<key>Identifier</key>
+			<string>deviceFamily</string>
+			<key>Units</key>
+			<dict>
+				<key>iPad</key>
+				<dict>
+					<key>Definitions</key>
+					<dict/>
+				</dict>
+				<key>iPhone</key>
+				<dict>
+					<key>Definitions</key>
+					<dict/>
+				</dict>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>

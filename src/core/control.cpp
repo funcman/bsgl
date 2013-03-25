@@ -13,6 +13,7 @@
 #define _KEY_UP 0x2
 
 void CALL BSGL_Impl::Control_GetState() {
+#if !defined(CC_TARGET_OS_IPHONE)
     Uint8* keystates = SDL_GetKeyState(NULL);
     Uint8 mouse_mask = SDL_GetMouseState(&_mouse_x, &_mouse_y);
 
@@ -435,6 +436,8 @@ void CALL BSGL_Impl::Control_GetState() {
     }else {
         _key_buf[INP_PGDN] = _key_buf[INP_PGDN] << 1;
     }
+#else
+#endif
 }
 
 bool CALL BSGL_Impl::Control_IsDown(int key) {

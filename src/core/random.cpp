@@ -11,7 +11,13 @@ static unsigned int g_seed = 0;
 
 void CALL BSGL_Impl::Random_Seed(int seed) {
     if( 0 == seed ) {
+#if !defined(CC_TARGET_OS_IPHONE)
         g_seed = SDL_GetTicks();
+#else
+        struct timeval tv;
+        gettimeofday(&tv, 0);
+        g_seed = tv.tv_sec * 1000.f + tv.tv_usec / 1000.0f;
+#endif
     }else {
         g_seed = seed;
     }

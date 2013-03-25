@@ -10,10 +10,20 @@
 
 #include "bsgl.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#if !defined(CC_TARGET_OS_IPHONE)
 #include <SDL/SDL.h>
 #include <GL/glew.h>
+#else
+#include <string>
+#include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
+#include <OpenGLES/ES1/gl.h>
+#include <OpenGLES/ES1/glext.h>
+#endif
 
 #define VERTEX_BUFFER_SIZE 4000
 
@@ -24,6 +34,10 @@ struct TextureList {
     int                 width;
     int                 height;
     struct TextureList* next;
+#if defined(CC_TARGET_OS_IPHONE)
+    int                 tex_width;
+    int                 tex_height;
+#endif
 };
 
 /*
@@ -102,12 +116,15 @@ private:
     int nScreenHeight;
     int nScreenBPP;
     bool bActive;
+#if !defined(CC_TARGET_OS_IPHONE)
     SDL_Surface* pSurface;
+#endif
     char szLogFile[256];
     char szCfgFile[256];
     char szCfgString[256];
 
     TextureList*    textures;
+    GLubyte*        indexes;
     bsglVertex*     VertArray;
 
     int         nPrim;
@@ -124,6 +141,9 @@ private:
     float   fTime;
     float   fDeltaTime;
     int     nFPS;
+#if defined(CC_TARGET_OS_IPHONE)
+    float   fStartTime;
+#endif
 
     unsigned int*       _key_buf;
     int                 _mouse_x;
