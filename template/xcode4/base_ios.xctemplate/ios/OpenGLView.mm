@@ -37,17 +37,17 @@ OpenGLView* v;
 }
 
 - (void)setupRenderBuffer {
-    glGenRenderbuffers(1, &_colorRenderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderBuffer);
-    [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
+    glGenRenderbuffersOES(1, &_colorRenderBuffer);
+    glBindRenderbufferOES(GL_RENDERBUFFER_OES, _colorRenderBuffer);
+    [_context renderbufferStorage:GL_RENDERBUFFER_OES fromDrawable:_eaglLayer];
 }
 
 - (void)setupFrameBuffer {
     GLuint framebuffer;
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                              GL_RENDERBUFFER, _colorRenderBuffer);
+    glGenFramebuffersOES(1, &framebuffer);
+    glBindFramebufferOES(GL_FRAMEBUFFER_OES, framebuffer);
+    glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES,
+                              GL_RENDERBUFFER_OES, _colorRenderBuffer);
 }
 
 - (void)logicFunc:(NSTimer*)timer {
@@ -56,7 +56,7 @@ OpenGLView* v;
 
 - (void)renderFunc:(NSTimer*)timer {
     render();
-    [_context presentRenderbuffer:GL_RENDERBUFFER];
+    [_context presentRenderbuffer:GL_RENDERBUFFER_OES];
 }
 
 - (void)setupLogicFunc:(FrameFunc)func withFPS:(int)fps {
