@@ -657,6 +657,7 @@ struct _BMP* _LoadBMP(char const* filename) {
     bmp->th = next_p2(bmp->oh);
     bmp->data = (unsigned char*)malloc((bmp->tw)*(bmp->th)*sizeof(unsigned int));
     memset(bmp->data, 0, bmp->tw*bmp->th*sizeof(unsigned int));
+    fseek(fp, header.offset, SEEK_SET);
     for(int h=bmp->oh-1; h>=0; --h) {
         fread((bmp->data)+h*bmp->tw*sizeof(unsigned int), sizeof(unsigned int)*bmp->ow, 1, fp);
     }
