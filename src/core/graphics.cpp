@@ -579,9 +579,9 @@ void _Resize(int width, int height) {
     gluOrtho2D(0.0, (GLfloat)width, 0.0, (GLfloat)height);
 #else
 if( Portrait )
-    glOrthof(0.0, mmGetViewWidth(), 0.0, mmGetViewHeight(), -1.0, 1.0);
+    glOrthof(0.0, mmGetViewWidth()*mmGetViewContentScaleFactor(), 0.0, mmGetViewHeight()*mmGetViewContentScaleFactor(), -1.0, 1.0);
 else
-    glOrthof(0.0, mmGetViewHeight(), 0.0, mmGetViewWidth(), -1.0, 1.0);
+    glOrthof(0.0, mmGetViewHeight()*mmGetViewContentScaleFactor(), 0.0, mmGetViewWidth()*mmGetViewContentScaleFactor(), -1.0, 1.0);
 #endif
 
     glMatrixMode(GL_MODELVIEW);

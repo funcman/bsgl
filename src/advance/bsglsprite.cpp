@@ -19,8 +19,8 @@ bsglSprite::bsglSprite(HTEXTURE tex, float x, float y, float w, float h) {
 
     tx      = x;
     ty      = y;
-    width   =w;
-    height  =h;
+    width   = w;
+    height  = h;
 
     if(tex)    {
         tex_width   = (float)bsgl->Texture_GetWidth(tex);
