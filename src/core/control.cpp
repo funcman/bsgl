@@ -12,6 +12,12 @@
 #define _KEY_PRESSING 0x3
 #define _KEY_UP 0x2
 
+#if defined(CC_TARGET_OS_IPHONE)
+extern int  mmGetX();
+extern int  mmGetY();
+extern bool mmIsTouching();
+#endif
+
 void CALL BSGL_Impl::Control_GetState() {
 #if !defined(CC_TARGET_OS_IPHONE)
     Uint8* keystates = SDL_GetKeyState(NULL);
@@ -437,6 +443,11 @@ void CALL BSGL_Impl::Control_GetState() {
         _key_buf[INP_PGDN] = _key_buf[INP_PGDN] << 1;
     }
 #else
+    if (mmIsTouching()) {
+        _key_buf[INP_TOUCH] = _key_buf[INP_TOUCH] << 1 | 1;
+    }else {
+        _key_buf[INP_TOUCH] = _key_buf[INP_TOUCH] << 1;
+    }
 #endif
 }
 
@@ -465,10 +476,18 @@ bool CALL BSGL_Impl::Control_IsUp(int key) {
 }
 
 int  CALL BSGL_Impl::Control_GetMouseX() {
+#if !defined(CC_TARGET_OS_IPHONE)
     return _mouse_x;
+#else
+    return mmGetX();
+#endif
 }
 
 int  CALL BSGL_Impl::Control_GetMouseY() {
+#if !defined(CC_TARGET_OS_IPHONE)
     return _mouse_y;
+#else
+    return mmGetY();
+#endif
 }
 

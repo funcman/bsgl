@@ -149,6 +149,8 @@ typedef DWORD HCHANNEL;
 #define INP_PGUP        193
 #define INP_PGDN        194
 
+#define INP_TOUCH       255
+
 /*
 ** System state constants
 */

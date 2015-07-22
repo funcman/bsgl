@@ -10,6 +10,14 @@ FrameFunc render;
 
 OpenGLView* v;
 
+@interface OpenGLView() {
+    float   _x;
+    float   _y;
+    bool    _isTouching;
+}
+
+@end
+
 @implementation OpenGLView
 
 + (Class)layerClass {
@@ -87,6 +95,10 @@ OpenGLView* v;
         [self setupRenderBuffer];
         [self setupFrameBuffer];
 
+        _x = 0.f;
+        _y = 0.f;
+        _isTouching = false;
+
         v = self;        
         bsgl_begin();
     }
@@ -103,23 +115,47 @@ OpenGLView* v;
 	return bound.height;
 }
 
+- (int)getX {
+    return (int)_x;
+}
+
+- (int)getY {
+    return (int)_y;
+}
+
+- (bool)isTouching {
+    return _isTouching;
+}
+
 - (void)touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
+        _x = [touch locationInView:self].x;
+        _y = [touch locationInView:self].y;
+        _isTouching = true;
     }
 }
 
 - (void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
+        _x = [touch locationInView:self].x;
+        _y = [touch locationInView:self].y;
+        _isTouching = true;
     }
 }
 
 - (void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
+        _x = [touch locationInView:self].x;
+        _y = [touch locationInView:self].y;
+        _isTouching = false;
     }
 }
 
 - (void)touchesCancelled:(NSSet*)touches withEvent:(UIEvent*)event {
     for (UITouch* touch in touches) {
+        _x = [touch locationInView:self].x;
+        _y = [touch locationInView:self].y;
+        _isTouching = false;
     }
 }
 
@@ -150,4 +186,16 @@ int mmGetViewWidth() {
 
 int mmGetViewHeight() {
     return [v getHeight];
+}
+
+int mmGetX() {
+    return [v getX] * v.contentScaleFactor;
+}
+
+int mmGetY() {
+    return [v getY] * v.contentScaleFactor;
+}
+
+bool mmIsTouching() {
+    return [v isTouching];
 }
