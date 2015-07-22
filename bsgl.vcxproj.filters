@@ -13,6 +13,9 @@
     <Filter Include="src\advance">
       <UniqueIdentifier>{9646eb9c-50e4-4bdc-b651-c628fe201cc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\gui">
+      <UniqueIdentifier>{5f162c0d-d8c6-41cb-b551-f475cf2c6ebe}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\dependencies">
       <UniqueIdentifier>{8a53f6fc-bb01-42b7-b221-0e9e5d59cdcb}</UniqueIdentifier>
     </Filter>
@@ -31,6 +34,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\bsglsprite.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bsglwidget.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="src\core\bsgl_impl.h">
@@ -70,6 +76,9 @@
     </ClCompile>
     <ClCompile Include="src\advance\bsglsprite.cpp">
       <Filter>src\advance</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\bsglwidget.cpp">
+      <Filter>src\gui</Filter>
     </ClCompile>
     <ClCompile Include="src\dependencies\tinyxml\tinystr.cpp">
       <Filter>src\dependencies\tinyxml</Filter>

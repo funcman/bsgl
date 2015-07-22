@@ -15,6 +15,7 @@
     <ClInclude Include="include\bsglanim.h" />
     <ClInclude Include="include\bsglrect.h" />
     <ClInclude Include="include\bsglsprite.h" />
+    <ClInclude Include="include\bsglwidget.h" />
     <ClInclude Include="src\core\bsgl_impl.h" />
     <ClInclude Include="src\dependencies\tinyxml\tinystr.h" />
     <ClInclude Include="src\dependencies\tinyxml\tinyxml.h" />
@@ -33,6 +34,7 @@
     <ClCompile Include="src\dependencies\tinyxml\tinyxml.cpp" />
     <ClCompile Include="src\dependencies\tinyxml\tinyxmlerror.cpp" />
     <ClCompile Include="src\dependencies\tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="src\gui\bsglwidget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\dependencies\tinyxml\README" />
