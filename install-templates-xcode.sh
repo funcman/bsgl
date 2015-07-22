@@ -87,7 +87,8 @@ copy_bsgl_files(){
 	echo ...copying bsgl files
 	copy_files include "$LIBS_DIR"/bsgl
 	copy_files src/core "$LIBS_DIR"/bsgl
-	copy_files src/advance "$LIBS_DIR"/bsgl
+    copy_files src/advance "$LIBS_DIR"/bsgl
+	copy_files src/gui "$LIBS_DIR"/bsgl
 }
 
 copy_tinyxml_files(){

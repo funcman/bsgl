@@ -2,7 +2,7 @@ CFLAGS?=-Os -Wall
 
 all: libbsgl.a
 
-libbsgl.a: config.o control.o graphics.o random.o system.o timer.o bsglanim.o bsglrect.o bsglsprite.o tinystr.o tinyxml.o tinyxmlerror.o tinyxmlparser.o
+libbsgl.a: config.o control.o graphics.o random.o system.o timer.o bsglanim.o bsglrect.o bsglsprite.o bsglwidget.o tinystr.o tinyxml.o tinyxmlerror.o tinyxmlparser.o
 	$(AR) -r libbsgl.a *.o
 
 config.o: include/bsgl.h src/core/bsgl_impl.h src/dependencies/tinyxml/tinyxml.h src/core/config.cpp
@@ -31,6 +31,9 @@ bsglrect.o: include/bsgl.h include/bsglrect.h src/advance/bsglrect.cpp
 
 bsglsprite.o: include/bsgl.h include/bsglsprite.h src/advance/bsglsprite.cpp
 	$(CC) $(CFLAGS) src/advance/bsglsprite.cpp -c -Iinclude
+
+bsglwidget.o: include/bsgl.h include/bsglwidget.h src/gui/bsglwidget.cpp
+	$(CC) $(CFLAGS) src/gui/bsglwidget.cpp -c -Iinclude
 
 tinystr.o: src/dependencies/tinyxml/tinystr.h src/dependencies/tinyxml/tinystr.cpp
 	$(CC) $(CFLAGS) src/dependencies/tinyxml/tinystr.cpp -c -Isrc/dependencies/tinyxml

@@ -62,6 +62,19 @@
 			<key>TargetIndices</key>
 			<array/>
 		</dict>
+		<key>libs/bsgl/include/bsglwidget.h</key>
+		<dict>
+			<key>Group</key>
+			<array>
+				<string>libs</string>
+				<string>bsgl</string>
+				<string>include</string>
+			</array>
+			<key>Path</key>
+			<string>libs/bsgl/include/bsglwidget.h</string>
+			<key>TargetIndices</key>
+			<array/>
+		</dict>
 		<key>libs/bsgl/core/bsgl_impl.h</key>
 		<dict>
 			<key>Group</key>
@@ -172,6 +185,17 @@
 			<key>Path</key>
 			<string>libs/bsgl/advance/bsglsprite.cpp</string>
 		</dict>
+		<key>libs/bsgl/gui/bsglwidget.cpp</key>
+		<dict>
+			<key>Group</key>
+			<array>
+				<string>libs</string>
+				<string>bsgl</string>
+				<string>gui</string>
+			</array>
+			<key>Path</key>
+			<string>libs/bsgl/gui/bsglwidget.cpp</string>
+		</dict>
 	</dict>
 	<key>Nodes</key>
 	<array>
@@ -179,6 +203,7 @@
 		<string>libs/bsgl/include/bsglanim.h</string>
 		<string>libs/bsgl/include/bsglrect.h</string>
 		<string>libs/bsgl/include/bsglsprite.h</string>
+		<string>libs/bsgl/include/bsglwidget.h</string>
 		<string>libs/bsgl/core/bsgl_impl.h</string>
 		<string>libs/bsgl/core/config.cpp</string>
 		<string>libs/bsgl/core/control.cpp</string>
@@ -189,6 +214,7 @@
 		<string>libs/bsgl/advance/bsglanim.cpp</string>
 		<string>libs/bsgl/advance/bsglrect.cpp</string>
 		<string>libs/bsgl/advance/bsglsprite.cpp</string>
+		<string>libs/bsgl/gui/bsglwidget.cpp</string>
 	</array>
 </dict>
 </plist>
