@@ -7,8 +7,8 @@
 
 #include "bsgl_impl.h"
 
-static void _InitOGL();
-static void _Resize(int, int);
+void _InitOGL();
+void _Resize(int, int);
 
 struct _BMP {
     int             ow;
@@ -21,7 +21,212 @@ struct _BMP {
 struct _BMP*    _LoadBMP(char const* filename);
 void            _FreeBMP(struct _BMP* bmp);
 
-int next_p2(int num);
+int powerOfTwo(int num);
+
+static GLchar const* vs[] = {
+    "uniform mat4 LProjectionMatrix;"
+    "uniform mat4 LModelViewMatrix;"
+    "attribute vec3 LVertexPos3D;"
+    "attribute vec4 LMultiColor;"
+    "attribute vec2 LTexCoord;"
+    "varying vec4 multiColor;"
+    "varying vec2 texCoord;"
+    "void main() {"
+    "    multiColor  = LMultiColor;"
+    "    texCoord    = LTexCoord;"
+    "    gl_Position = LProjectionMatrix * LModelViewMatrix * vec4(LVertexPos3D.x, LVertexPos3D.y, LVertexPos3D.z, 1.0);"
+    "}"
+};
+
+static GLchar const* fs[] = {
+    "precision highp float;"
+    "uniform int LIsModulateMode;"
+    "uniform sampler2D LTextureUnit;"
+    "varying vec4 multiColor;"
+    "varying vec2 texCoord;"
+    "void main() {"
+    "    gl_FragColor = texture2D(LTextureUnit, texCoord);"
+    "}"
+};
+
+GLint programID;
+GLint projectionMatrixLocation;
+GLint modelViewMatrixLocation;
+GLint vertexPos3DLocation;
+GLint multiColorLocation;
+GLint texCoordLocation;
+GLint isModulateModeLocation;
+GLint textureUnitLocation;
+
+static void initGLSL() {
+    BSGL_Impl* bsgl = BSGL_Impl::_Interface_Get();
+    programID = glCreateProgram();
+    // vs
+    GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vShader, 1, vs, 0);
+    glCompileShader(vShader);
+    GLint vsCompiled = GL_FALSE;
+    glGetShaderiv(vShader, GL_COMPILE_STATUS, &vsCompiled);
+    if (vsCompiled != GL_TRUE) {
+        int maxLen;
+        glGetShaderiv(vShader, GL_INFO_LOG_LENGTH, &maxLen);
+        char* infoLog = new char[maxLen];
+        int infoLen;
+        glGetShaderInfoLog(vShader, maxLen, &infoLen, infoLog);
+        if (infoLen > 0) {
+            bsgl->_PostError("%s", infoLog);
+        }
+        delete[] infoLog;
+    }
+    glAttachShader(programID, vShader);
+    // fs
+    GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fShader, 1, fs, 0);
+    glCompileShader(fShader);
+    GLint fsCompiled = GL_FALSE;
+    glGetShaderiv(fShader, GL_COMPILE_STATUS, &fsCompiled);
+    if (fsCompiled != GL_TRUE) {
+        int maxLen;
+        glGetShaderiv(fShader, GL_INFO_LOG_LENGTH, &maxLen);
+        char* infoLog = new char[maxLen];
+        int infoLen;
+        glGetShaderInfoLog(fShader, maxLen, &infoLen, infoLog);
+        if (infoLen > 0) {
+            bsgl->_PostError("%s", infoLog);
+        }
+        delete[] infoLog;
+    }
+    glAttachShader(programID, fShader);
+    glLinkProgram(programID);
+    GLint success = GL_FALSE;
+    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    if (success != GL_TRUE) {
+        int maxLen;
+        glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLen);
+        char* infoLog = new char[maxLen];
+        int infoLen;
+        glGetProgramInfoLog(programID, maxLen, &infoLen, infoLog);
+        if (infoLen > 0) {
+            bsgl->_PostError("%s", infoLog);
+        }
+        delete[] infoLog;
+    }
+    // location
+    projectionMatrixLocation    = glGetUniformLocation(programID,   "LProjectionMatrix");
+    modelViewMatrixLocation     = glGetUniformLocation(programID,   "LModelViewMatrix");
+    vertexPos3DLocation         = glGetAttribLocation(programID,    "LVertexPos3D");
+    multiColorLocation          = glGetAttribLocation(programID,    "LMultiColorLocation");
+    texCoordLocation            = glGetAttribLocation(programID,    "LTexCoord");
+    isModulateModeLocation      = glGetUniformLocation(programID,   "LIsModulateMode");
+    textureUnitLocation         = glGetUniformLocation(programID,   "LTextureUnit");
+    glDeleteShader(vShader);
+    glDeleteShader(fShader);
+    glUseProgram(programID);
+    bsgl->Release();
+}
+
+static void setMatrix(bool isProjectionMatrix, GLfloat const* matrix) {
+    if (isProjectionMatrix) {
+        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, matrix);
+    }else {
+        glUniformMatrix4fv(modelViewMatrixLocation, 1, GL_FALSE, matrix);
+    }
+}
+
+static void enableVertexPointer(bool enable) {
+    if (enable) {
+        glEnableVertexAttribArray(vertexPos3DLocation);
+    }else {
+        glDisableVertexAttribArray(vertexPos3DLocation);
+    }
+}
+
+static void enableColorPointer(bool enable) {
+    if (enable) {
+        glEnableVertexAttribArray(multiColorLocation);
+    }else {
+        glDisableVertexAttribArray(multiColorLocation);
+    }
+}
+
+static void enableTexCoordPointer(bool enable) {
+    if (enable) {
+        glEnableVertexAttribArray(texCoordLocation);
+    }else {
+        glDisableVertexAttribArray(texCoordLocation);
+    }
+}
+
+static void setVertexPointer(GLsizei stride, GLvoid const* data) {
+    glVertexAttribPointer(vertexPos3DLocation, 3, GL_FLOAT, GL_FALSE, stride, data);
+}
+
+static void setColorPointer(GLsizei stride, GLvoid const* data) {
+    glVertexAttribPointer(multiColorLocation, 4, GL_FLOAT, GL_FALSE, stride, data);
+}
+
+static void setTexCoordPointer(GLsizei stride, GLvoid const* data) {
+    glVertexAttribPointer(texCoordLocation, 2, GL_FLOAT, GL_FALSE, stride, data);
+}
+
+static void setTextureUnit(GLuint unit) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, unit);
+    glUniform1i(textureUnitLocation, 0);
+}
+
+static void setAddMode(bool isAddMode) {
+    if (isAddMode) {
+        glUniform1i(isModulateModeLocation, 0);
+    }else {
+        glUniform1i(isModulateModeLocation, 1);
+    }
+}
+
+static void mxm(GLfloat* m1, GLfloat* m2) {
+    GLfloat m[16];
+    for (int i=0; i<16; ++i) {
+        m[i] = 0.f;
+    }
+    for (int i=0; i<4; ++i) {
+        for (int j=0; j<4; ++j) {
+            for (int k=0; k<4; ++k) {
+                m[i*4+k] += m1[i*4+j]*m2[j*4+k];
+            }
+        }
+    }
+    for (int i=0; i<16; ++i) {
+        m2[i] = m[i];
+    }
+}
+
+static void mi(GLfloat* m) {
+    m[0]    = 1.f;  m[1]    = 0.f;      m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = 0.f;  m[5]    = 1.f;      m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;  m[9]    = 0.f;      m[10]   = 1.f;  m[11]   = 0.f;
+    m[12]   = 0.f;  m[13]   = 0.f;      m[14]   = 0.f;  m[15]   = 1.f;
+}
+
+static void mt(float dx, float dy, GLfloat* m) {
+    m[0]    = 1.f;  m[1]    = 0.f;      m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = 0.f;  m[5]    = 1.f;      m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;  m[9]    = 0.f;      m[10]   = 1.f;  m[11]   = 0.f;
+    m[12]   = dx;   m[13]   = dy;       m[14]   = 0.f;  m[15]   = 1.f;
+}
+
+static void mr(float angle, GLfloat* m) {
+    m[0]    = cos(3.1415926f*angle/180.f);  m[1]    = -sin(3.1415926f*angle/180.f);     m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = sin(3.1415926f*angle/180.f);  m[5]    = cos(3.1415926f*angle/180.f);      m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;                          m[9]    = 0.f;                              m[10]   = 1.f;  m[11]   = 0.f;
+    m[12]   = 0.f;                          m[13]   = 0.f;                              m[14]   = 0.f;  m[15]   = 1.f;
+}
+
+static void ms(float hs, float vs, GLfloat* m) {
+    m[0]    = hs;   m[1]    = 0.f;      m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = 0.f;  m[5]    = vs;       m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;  m[9]    = 0.f;      m[10]   = 1.f;  m[11]   = 0.f;
+    m[12]   = 0.f;  m[13]   = 0.f;      m[14]   = 0.f;  m[15]   = 1.f;
+}
 
 void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
     glClearColor((GLfloat)GETR(color), (GLfloat)GETG(color),
@@ -30,7 +235,7 @@ void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
 }
 
 bool CALL BSGL_Impl::Gfx_BeginScene() {
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     switch( nPolyMode ) {
     default:
     case 0:
@@ -66,10 +271,17 @@ void CALL BSGL_Impl::Gfx_RenderTriple(const bsglTriple* triple) {
             _SetBlendMode(triple->blend);
         }
         if( CurTexture != triple->tex ) {
-            if( triple->tex )
+            if( triple->tex ) {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
                 glBindTexture(GL_TEXTURE_2D, *(GLuint*)triple->tex);
-            else
+            }else {
                 glBindTexture(GL_TEXTURE_2D, 0);
+#else
+                setTextureUnit(*(GLuint*)triple->tex);
+            }else {
+                setTextureUnit(0);
+#endif
+            }
             CurTexture = triple->tex;
         }
     }
@@ -89,10 +301,17 @@ void CALL BSGL_Impl::Gfx_RenderQuad(const bsglQuad* quad) {
             _SetBlendMode(quad->blend);
         }
         if( CurTexture != quad->tex ) {
-            if( quad->tex )
+            if( quad->tex ) {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
                 glBindTexture(GL_TEXTURE_2D, *(GLuint*)quad->tex);
-            else
+            }else {
                 glBindTexture(GL_TEXTURE_2D, 0);
+#else
+                setTextureUnit(*(GLuint*)quad->tex);
+            }else {
+                setTextureUnit(0);
+#endif
+            }
             CurTexture = quad->tex;
         }
     }
@@ -109,7 +328,11 @@ bsglVertex* CALL BSGL_Impl::Gfx_StartBatch(int prim_type, HTEXTURE tex, int blen
             _SetBlendMode(blend);
         }
         if( CurTexture != tex ) {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
             glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
+#else
+            setTextureUnit(*(GLuint*)tex);
+#endif
             CurTexture = tex;
         }
 
@@ -124,36 +347,18 @@ void CALL BSGL_Impl::Gfx_FinishBatch(int nprim) {
     nPrim = nprim;
 }
 
-// OLD
-/*
-HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
-    GLuint* texture = new GLuint;
-
-    glGenTextures(1, texture);
-    glBindTexture(GL_TEXTURE_2D, *texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-            0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    return (HTEXTURE)texture;
-}
-*/
-
 HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
     GLuint* texture = new GLuint;
     int ow = width;
     int oh = height;
-    int tw = next_p2(width);
-    int th = next_p2(height);
+    int tw = powerOfTwo(width);
+    int th = powerOfTwo(height);
     *texture = 0;
 
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th,
-                    0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -164,7 +369,7 @@ HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
     texItem->width = ow;
     texItem->height = oh;
     texItem->next = textures;
-#if defined(CC_TARGET_OS_IPHONE)
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
     texItem->tex_width = tw;
     texItem->tex_height = th;
 #endif
@@ -187,6 +392,7 @@ HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMi
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     if( !texture_image ) {
@@ -199,7 +405,7 @@ HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMi
     texItem->width = texture_image->ow;
     texItem->height = texture_image->oh;
     texItem->next = textures;
-#if defined(CC_TARGET_OS_IPHONE)
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
     texItem->tex_width = texture_image->tw;
     texItem->tex_height = texture_image->th;
 #endif
@@ -245,7 +451,7 @@ int CALL BSGL_Impl::Texture_GetWidth(HTEXTURE tex, bool bOriginal) {
         return 0;
     }
 
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     GLint width;
     glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
@@ -274,7 +480,7 @@ int CALL BSGL_Impl::Texture_GetHeight(HTEXTURE tex, bool bOriginal) {
         return 0;
     }
 
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     GLint height;
     glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
@@ -291,18 +497,11 @@ int CALL BSGL_Impl::Texture_GetHeight(HTEXTURE tex, bool bOriginal) {
 }
 
 DWORD* CALL BSGL_Impl::Texture_CreateData(int width, int height) {
-    DWORD* data;
-    //?int tex_w = next_p2(width);
-    //?int tex_h = next_p2(height);
-
-    //?data = new DWORD[tex_w*tex_h];
-    data = new DWORD[width*height];
-
-    return data;
+    return new DWORD[width*height];
 }
 
 DWORD* CALL BSGL_Impl::Texture_LoadData(HTEXTURE tex) {
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     int width;
     int height;
     DWORD* data;
@@ -333,7 +532,7 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
 
     if( 0 == width ) {
         _x = 0;
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &_w);
 #else
         TextureList* texItem = textures;
@@ -351,7 +550,7 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
 
     if( 0 == height ) {
         _y = 0;
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &_h);
 #else
         TextureList* texItem = textures;
@@ -386,13 +585,18 @@ void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//remember to 
     _render_batch();
     glViewport(x, nScreenHeight-y-h, w, h);
 
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glScalef(1.0f, -1.0f, 1.0f);
-#if !defined(CC_TARGET_OS_IPHONE)
-    gluOrtho2D((GLfloat)x, (GLfloat)(x+w), (GLfloat)y, (GLfloat)(y+h));
+    glOrtho((GLdouble)x, (GLdouble)(x+w), (GLdouble)y, (GLdouble)(y+h), -1.0, 1.0);
 #else
-    glOrthof((GLfloat)x, (GLfloat)(x+w), (GLfloat)y, (GLfloat)(y+h), -1.0f, 1.0f);
+    GLfloat m[16];
+    m[0]    = 2.f/(float)w;         m[1]    = 0.f;              m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = 0.f;                  m[5]    = -2.f/(float)h;    m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;                  m[9]    = 0.f;              m[10]   = -1.f; m[11]   = 0.f;
+    m[12]   = -(float)(x+2*w)/w;    m[13]   = (float)(y+2*h)/h; m[14]   = 0.f;  m[15]   = 1.f;
+    setMatrix(true, m);
 #endif
 }
 
@@ -400,47 +604,46 @@ void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//remember to 
 void CALL BSGL_Impl::Gfx_SetTransform(float x, float y, float dx, float dy, float rot, float hscale, float vscale) {
     _render_batch();
     if( 0.0f == hscale || 0.0f == vscale ) {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
+#else
+        GLfloat m[16];
+        m[0]    = 1.f;  m[1]    = 0.f;  m[2]    = 0.f;  m[3]    = 0.f;
+        m[4]    = 0.f;  m[5]    = 1.f;  m[6]    = 0.f;  m[7]    = 0.f;
+        m[8]    = 0.f;  m[9]    = 0.f;  m[10]   = 1.f;  m[11]   = 0.f;
+        m[12]   = 0.f;  m[13]   = 0.f;  m[14]   = 0.f;  m[15]   = 1.f;
+        setMatrix(false, m);
+#endif
     }else {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glTranslatef(x+dx, y+dx, 0.0f);
+        glTranslatef(x+dx, y+dy, 0.0f);
         glRotatef(rot, 0.0f, 0.0f, -1.0f);
         glScalef(hscale, vscale, 1.0f);
         glTranslatef(-x, -y, 0.0f);
+#else
+        GLfloat m[16];
+        GLfloat m1[16];
+        GLfloat m2[16];
+        GLfloat m3[16];
+        GLfloat m4[16];
+        mt(x+dx, y+dy, m1);
+        mr(rot, m2);
+        ms(hscale, vscale, m3);
+        mt(-x, -y, m4);
+        mi(m);
+        mxm(m1, m);
+        mxm(m2, m);
+        mxm(m3, m);
+        mxm(m4, m);
+        setMatrix(false, m);
+#endif
     }
 }
 
 bool BSGL_Impl::_GfxInit() {
-#if !defined(CC_TARGET_OS_IPHONE)
-    const SDL_VideoInfo* video_info;
-    int video_flags;
-
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);//remember to test the return value
-    video_info = SDL_GetVideoInfo();
-    video_flags = SDL_OPENGL | SDL_GL_DOUBLEBUFFER | SDL_HWPALETTE;
-    if( video_info->hw_available ) {
-        video_flags |= SDL_HWSURFACE;
-    }else {
-        video_flags |= SDL_SWSURFACE;
-    }
-    if( !bWindowed ) {
-        video_flags |= SDL_FULLSCREEN;
-    }
-
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-    pSurface = SDL_SetVideoMode(nScreenWidth, nScreenHeight, nScreenBPP, video_flags);
-#endif
-    _InitOGL();
-    _Resize(nScreenWidth, nScreenHeight);
-
     GLubyte* iptr = indexes = new GLubyte[VERTEX_BUFFER_SIZE*6/4];
     GLubyte n = 0;
     for( int i=0; i<VERTEX_BUFFER_SIZE/4; ++i ) {
@@ -452,12 +655,25 @@ bool BSGL_Impl::_GfxInit() {
         *iptr++ = n;
         n+=4;
     }
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
+    //Create IBO in ES2.0
+    glGenBuffers(1, &IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, VERTEX_BUFFER_SIZE*6/4, indexes, GL_STATIC_DRAW);
+#endif
 
     VertArray = new bsglVertex[VERTEX_BUFFER_SIZE];
     if( 0 == VertArray ) {
         _PostError("Can't create vertex buffer");
         return false;
     }
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
+    //Create VBO in ES2.0
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE*sizeof(bsglVertex), VertArray, GL_DYNAMIC_DRAW);
+#endif
+
     textures = 0;
 
     nPrim = 0;
@@ -474,44 +690,53 @@ void BSGL_Impl::_GfxDone() {
     while(textures) {
         Texture_Free(textures->tex);
     }
-#if !defined(CC_TARGET_OS_IPHONE)
-    SDL_Quit();
-#endif
 }
 
 void BSGL_Impl::_render_batch(bool bEndScene) {
-#if defined(CC_TARGET_OS_IPHONE)
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
     bsglVertex vv;
 #endif
+    enableTexCoordPointer(true);
+    enableColorPointer(true);
+    enableVertexPointer(true);
     if( nPrim != 0 ) {
         switch(CurPrimType) {
         case BSGLPRIM_LINES:
             break;
         case BSGLPRIM_TRIPLES:
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
             glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
 #else
-            glTexCoordPointer(2, GL_FLOAT, sizeof(bsglVertex), VertArray);
-            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.color)-(unsigned char*)&(vv.tx)));
-            glVertexPointer(3, GL_FLOAT, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.x)-(unsigned char*)&(vv.tx)));
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, VERTEX_BUFFER_SIZE*sizeof(bsglVertex), VertArray);
+            setTexCoordPointer(sizeof(bsglVertex), (GLvoid*)offsetof(bsglVertex, tx));
+            setColorPointer(sizeof(bsglVertex), (GLvoid*)offsetof(bsglVertex, color));
+            setVertexPointer(sizeof(bsglVertex), (GLvoid*)offsetof(bsglVertex, x));
 #endif
             glDrawArrays(GL_TRIANGLES, 0, nPrim*BSGLPRIM_TRIPLES);//remember to test
             break;
         case BSGLPRIM_QUADS:
-#if !defined(CC_TARGET_OS_IPHONE)
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
             glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
-#else
-            glTexCoordPointer(2, GL_FLOAT, sizeof(bsglVertex), VertArray);
-            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.color)-(unsigned char*)&(vv.tx)));
-            glVertexPointer(3, GL_FLOAT, sizeof(bsglVertex), (unsigned char*)VertArray+((unsigned char*)&(vv.x)-(unsigned char*)&(vv.tx)));
-#endif
             glDrawElements(GL_TRIANGLES, nPrim*6, GL_UNSIGNED_BYTE, indexes);
+#else
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, VERTEX_BUFFER_SIZE*sizeof(bsglVertex), VertArray);
+            setTexCoordPointer(sizeof(bsglVertex), (GLvoid*)offsetof(bsglVertex, tx));
+            setColorPointer(sizeof(bsglVertex), (GLvoid*)offsetof(bsglVertex, color));
+            setVertexPointer(sizeof(bsglVertex), (GLvoid*)offsetof(bsglVertex, x));
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+            glDrawElements(GL_TRIANGLES, nPrim*6, GL_UNSIGNED_BYTE, 0);
+#endif
             break;
         default:
             break;
         }
         nPrim = 0;
     }
+    enableTexCoordPointer(false);
+    enableColorPointer(false);
+    enableVertexPointer(false);
 }
 
 void BSGL_Impl::_SetBlendMode(int blend) {
@@ -533,9 +758,17 @@ void BSGL_Impl::_SetBlendMode(int blend) {
 
     if( ( blend & BLEND_COLORADD ) != ( CurBlendMode & BLEND_COLORADD ) ) {
         if( blend & BLEND_COLORADD ) {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+#else
+            setAddMode(true);
+#endif
         }else {
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#else
+            setAddMode(false);
+#endif
         }
     }
 
@@ -543,62 +776,53 @@ void BSGL_Impl::_SetBlendMode(int blend) {
 }
 
 void _InitOGL() {
-    //glShadeModel(GL_SMOOTH);
-    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
+    initGLSL();
+#endif
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-#if defined(CC_TARGET_OS_IPHONE)
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    setAddMode(false);
 #endif
 }
-
-#if defined(CC_TARGET_OS_IPHONE)
-extern int Portrait;
-extern float mmGetViewContentScaleFactor();
-extern int mmGetViewWidth();
-extern int mmGetViewHeight();
-#endif
 
 void _Resize(int width, int height) {
     if( height == 0 ) {
         height = 1;
     }
-#if !defined(CC_TARGET_OS_IPHONE)
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
-#else
-    glViewport(0, 0, mmGetViewWidth()*mmGetViewContentScaleFactor(), mmGetViewHeight()*mmGetViewContentScaleFactor());
-#endif
+#if !defined(Q_OS_IOS) && !defined(Q_OS_ANDROID)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glScalef(1.0f, -1.0f, 1.0f);
-#if !defined(CC_TARGET_OS_IPHONE)
-    gluOrtho2D(0.0, (GLfloat)width, 0.0, (GLfloat)height);
-#else
-if( Portrait )
-    glOrthof(0.0, mmGetViewWidth()*mmGetViewContentScaleFactor(), 0.0, mmGetViewHeight()*mmGetViewContentScaleFactor(), -1.0, 1.0);
-else
-    glOrthof(0.0, mmGetViewHeight()*mmGetViewContentScaleFactor(), 0.0, mmGetViewWidth()*mmGetViewContentScaleFactor(), -1.0, 1.0);
-#endif
-
+    glOrtho(0.0, (GLdouble)width, 0.0, (GLdouble)height, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+#else
+    GLfloat m[16];
+    m[0]    = 1.f/(float)width*2.f; m[1]    = 0.f;                      m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = 0.f;                  m[5]    = -1.f/(float)height*2.f;   m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;                  m[9]    = 0.f;                      m[10]   = -1.f; m[11]   = 0.f;
+    m[12]   = -1.f;                 m[13]   = 1.f;                      m[14]   = 0.f;  m[15]   = 1.f;
+    setMatrix(true, m);
+    m[0]    = 1.f;  m[1]    = 0.f;  m[2]    = 0.f;  m[3]    = 0.f;
+    m[4]    = 0.f;  m[5]    = 1.f;  m[6]    = 0.f;  m[7]    = 0.f;
+    m[8]    = 0.f;  m[9]    = 0.f;  m[10]   = 1.f;  m[11]   = 0.f;
+    m[12]   = 0.f;  m[13]   = 0.f;  m[14]   = 0.f;  m[15]   = 1.f;
+    setMatrix(false, m);
+#endif
 }
 
-int next_p2(int num) {
+int powerOfTwo(int num) {
     int r = 2;
-    for(;r<num;) {
-        r<<=1;
+    for (;r<num;) {
+        r <<= 1;
     }
     return r;
 }
-
-#if defined(CC_TARGET_OS_IPHONE)
-extern std::string mmGetFullPath(char const* filename);
-#endif
 
 struct _BMP* _LoadBMP(char const* filename) {
 #if defined(WIN32)
@@ -638,30 +862,24 @@ struct _BMP* _LoadBMP(char const* filename) {
 #if defined(WIN32)
 #pragma pack(pop)
 #endif
-    FILE* fp;
+    QFile file(filename);
     struct _BMP* bmp;
-#if !defined(CC_TARGET_OS_IPHONE)
-    fp = fopen(filename, "rb");
-#else
-    fp = fopen(mmGetFullPath(filename).c_str(), "rb");
-#endif
-    if( NULL == fp ) {
+    if (!file.open(QIODevice::ReadOnly)) {
         return NULL;
     }
     bmp = (struct _BMP*)malloc(sizeof(struct _BMP));
-    fread(&header, sizeof(header), 1, fp);
-    fread(&info, sizeof(info), 1, fp);
+    file.read((char*)&header, sizeof(header));
+    file.read((char*)&info, sizeof(info));
     bmp->ow = info.width;
     bmp->oh = info.height;
-    bmp->tw = next_p2(bmp->ow);
-    bmp->th = next_p2(bmp->oh);
+    bmp->tw = powerOfTwo(bmp->ow);
+    bmp->th = powerOfTwo(bmp->oh);
     bmp->data = (unsigned char*)malloc((bmp->tw)*(bmp->th)*sizeof(unsigned int));
     memset(bmp->data, 0, bmp->tw*bmp->th*sizeof(unsigned int));
-    fseek(fp, header.offset, SEEK_SET);
+    file.seek(header.offset);
     for(int h=bmp->oh-1; h>=0; --h) {
-        fread((bmp->data)+h*bmp->tw*sizeof(unsigned int), sizeof(unsigned int)*bmp->ow, 1, fp);
+        file.read((char*)((bmp->data)+h*bmp->tw*sizeof(unsigned int)), sizeof(unsigned int)*bmp->ow);
     }
-    fclose(fp);
     return bmp;
 }
 

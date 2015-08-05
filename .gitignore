@@ -12,7 +12,11 @@
 *.la
 *.a
 
+# Dependencies
+3rd_parties
+
 # Others
 .DS_Store
 *.swp
 *.swo
+*.pro.user

@@ -13,17 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#if !defined(CC_TARGET_OS_IPHONE)
-#include <SDL/SDL.h>
-#include <GL/glew.h>
-#else
-#include <string>
-#include <unistd.h>
-#include <sys/time.h>
-#include <time.h>
-#include <OpenGLES/ES1/gl.h>
-#include <OpenGLES/ES1/glext.h>
-#endif
+#include <QtOpenGL>
 
 #define VERTEX_BUFFER_SIZE 4000
 
@@ -34,7 +24,7 @@ struct TextureList {
     int                 width;
     int                 height;
     struct TextureList* next;
-#if defined(CC_TARGET_OS_IPHONE)
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
     int                 tex_width;
     int                 tex_height;
 #endif
@@ -45,36 +35,36 @@ struct TextureList {
 */
 class BSGL_Impl : public BSGL {
 public:
-    virtual void    CALL Release();
+    virtual void        CALL Release();
 
-    virtual bool    CALL System_Initiate();
-    virtual void    CALL System_Shutdown();
-    virtual bool    CALL System_Start();
+    virtual bool        CALL System_Initiate();
+    virtual void        CALL System_Shutdown();
+    virtual bool        CALL System_Start();
 
-    virtual char*   CALL System_GetErrorMessage();
+    virtual char*       CALL System_GetErrorMessage();
 
-    virtual void    CALL System_SetStateBool(bsglBoolState state, bool value);
-    virtual void    CALL System_SetStateFunc(bsglFuncState state, bsglCallback value);
-    virtual void    CALL System_SetStateInt(bsglIntState state, int value);
-    virtual int     CALL System_GetStateInt(bsglIntState state);
-    virtual void    CALL System_SetStateString(bsglStringState state, char const* value);
+    virtual void        CALL System_SetStateBool(bsglBoolState state, bool value);
+    virtual void        CALL System_SetStateFunc(bsglFuncState state, bsglCallback value);
+    virtual void        CALL System_SetStateInt(bsglIntState state, int value);
+    virtual int         CALL System_GetStateInt(bsglIntState state);
+    virtual void        CALL System_SetStateString(bsglStringState state, char const* value);
 
-    virtual void    CALL System_Log(char const* format, ...);
+    virtual void        CALL System_Log(char const* format, ...);
 
-    virtual void    CALL Config_SetInt(char const* section, char const* option, int value);
-    virtual int     CALL Config_GetInt(char const* section, char const* option, int def_val);
-    virtual void    CALL Config_SetFloat(char const* section, char const* option, float value);
-    virtual float   CALL Config_GetFloat(char const* section, char const* option, float def_val);
-    virtual void    CALL Config_SetString(char const* section, char const* option, char const* value);
-    virtual char*   CALL Config_GetString(char const* section, char const* option, char const* def_val);
+    virtual void        CALL Config_SetInt(char const* section, char const* option, int value);
+    virtual int         CALL Config_GetInt(char const* section, char const* option, int def_val);
+    virtual void        CALL Config_SetFloat(char const* section, char const* option, float value);
+    virtual float       CALL Config_GetFloat(char const* section, char const* option, float def_val);
+    virtual void        CALL Config_SetString(char const* section, char const* option, char const* value);
+    virtual char*       CALL Config_GetString(char const* section, char const* option, char const* def_val);
 
-    virtual void    CALL Random_Seed(int seed=0);
-    virtual int     CALL Random_Int(int min, int max);
-    virtual float   CALL Random_Float(float min, float max);
+    virtual void        CALL Random_Seed(int seed=0);
+    virtual int         CALL Random_Int(int min, int max);
+    virtual float       CALL Random_Float(float min, float max);
 
-    virtual float   CALL Timer_GetTime();
-    virtual float   CALL Timer_GetDelta();
-    virtual int     CALL Timer_GetFPS();
+    virtual float       CALL Timer_GetTime();
+    virtual float       CALL Timer_GetDelta();
+    virtual int         CALL Timer_GetFPS();
 
     virtual bool        CALL Gfx_BeginScene();
     virtual void        CALL Gfx_EndScene();
@@ -116,9 +106,6 @@ private:
     int nScreenHeight;
     int nScreenBPP;
     bool bActive;
-#if !defined(CC_TARGET_OS_IPHONE)
-    SDL_Surface* pSurface;
-#endif
     char szLogFile[256];
     char szCfgFile[256];
     char szCfgString[256];
@@ -126,6 +113,10 @@ private:
     TextureList*    textures;
     GLubyte*        indexes;
     bsglVertex*     VertArray;
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
+    GLuint          IBO;
+    GLuint          VBO;
+#endif
 
     int         nPrim;
     int         CurPrimType;
@@ -141,7 +132,7 @@ private:
     float   fTime;
     float   fDeltaTime;
     int     nFPS;
-#if defined(CC_TARGET_OS_IPHONE)
+#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
     float   fStartTime;
 #endif
 
@@ -160,6 +151,11 @@ private:
 };
 
 extern BSGL_Impl* pBSGL;
+
+extern bool isRunning;
+extern bool qtKeyStates[0xFF];
+extern bool qtLeftButton;
+extern bool qtRightButton;
 
 #endif//BSGL_IMPL_H
 

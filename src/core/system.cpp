@@ -7,7 +7,18 @@
 
 #include "bsgl_impl.h"
 
+#include <QApplication>
+#include <QTimer>
+
+#include "MainWindow.h"
+#include "MainTask.h"
+#include "ScreenWidget.h"
+
 #define _KEY_BUF_SIZE 256
+
+QApplication* a;
+
+bool isRunning = false;
 
 int         nRef = 0;
 BSGL_Impl*   pBSGL = 0;
@@ -51,14 +62,8 @@ bool CALL BSGL_Impl::System_Initiate() {
     }
 
     fTime = 0.0f;
-#if defined(CC_TARGET_OS_IPHONE)
-    fStartTime = 0.0f;
-#endif
 
     bInit = true;
-#if !defined(CC_TARGET_OS_IPHONE)
-    SDL_WM_SetCaption(szTitle, NULL);
-#endif
 
     return true;
 }
@@ -70,16 +75,10 @@ void CALL BSGL_Impl::System_Shutdown() {
     System_Log("The End.");
 }
 
-#if defined(CC_TARGET_OS_IPHONE)
-extern void mmSetLogic(FrameFunc func,int fps);
-extern void mmSetRender(FrameFunc func, int fps, float* dt);
-#endif
-
 bool CALL BSGL_Impl::System_Start() {
-#if !defined(CC_TARGET_OS_IPHONE)
-    SDL_Event event;
-    bool done = false;
-    float time = SDL_GetTicks() / 1000.0f;
+    QTime clock;
+    clock.start();
+    float time = clock.elapsed() / 1000.0f;
     float old_time = time;
     float old_logic_time = time;
     float old_render_time = time;
@@ -88,35 +87,17 @@ bool CALL BSGL_Impl::System_Start() {
     float render_dt = 0.0f;
     unsigned int fps = 0;
 
-    while( !done ) {
-        while ( SDL_PollEvent( &event ) ) {
-            switch( event.type ) {
-                case SDL_ACTIVEEVENT:
-                    if( SDL_APPMOUSEFOCUS == event.active.state ) {
-                        break;
-                    }
-                    if( 0 == event.active.gain ) {
-                        bActive = false;
-                    } else if( 1 == event.active.gain ) {
-                        bActive = true;
-                    }
-                    break;
-                case SDL_QUIT:
-                    done = true;
-                    break;
-                default:
-                    break;
-            }
-        }
+    while( isRunning ) {
+        a->processEvents();
 
-        time = SDL_GetTicks() / 1000.0f;
+        time = clock.elapsed() / 1000.0f;
         float _t = time - old_time;
         old_time = time;
         fTime += _t;
         if( !bActive ) {
             old_logic_time += _t;
             old_render_time += _t;
-            SDL_Delay(1);
+            QThread::usleep(1);
             continue;
         }
 
@@ -146,8 +127,8 @@ bool CALL BSGL_Impl::System_Start() {
                 }
                 ++fps;
             }
-            glFlush();
-            SDL_GL_SwapBuffers();
+            //glFlush();
+            ScreenWidget::instance()->updateGL();
 
             //fRenderDeltaTime
             render_dt = ( time - old_render_time );
@@ -165,16 +146,9 @@ bool CALL BSGL_Impl::System_Start() {
             time4fps += 1.0f;
         }
 
-        SDL_Delay(1);
+        QThread::usleep(1);
     }
     return true;
-#else
-    if( fpLogicFunc )
-        mmSetLogic(fpLogicFunc, nLFPS);
-    if( fpRenderFunc )
-        mmSetRender(fpRenderFunc, nRFPS, &fDeltaTime);
-    return true;
-#endif
 }
 
 void CALL BSGL_Impl::System_SetStateBool(bsglBoolState state, bool value) {
@@ -266,13 +240,10 @@ void CALL BSGL_Impl::System_SetStateString(bsglStringState state, const char* va
             break;
         case BSGL_LOGFILE:
             if( value != 0 ) {
-                FILE* fp;
+                QFile file(szLogFile);
                 strcpy(szLogFile, value);
-                fp = fopen(szLogFile, "w");
-                if( 0 == fp ) {
+                if (!file.isWritable()) {
                     szLogFile[0] = (char)0;
-                }else {
-                    fclose(fp);
                 }
             }else {
                 szLogFile[0] = (char)0;
@@ -288,29 +259,30 @@ char* CALL BSGL_Impl::System_GetErrorMessage() {
 }
 
 void CALL BSGL_Impl::System_Log(const char *szFormat, ...) {
-    FILE* fp = 0;
     va_list vl;
 
     if(!szLogFile[0]) {
         return;
     }
 
-    fp = fopen(szLogFile, "a");
-    if( 0 == fp ) {
+    QFile file(szLogFile);
+    if (!file.open(QIODevice::Append)) {
         return;
     }
 
+    char buffer[1024];
+
     va_start(vl, szFormat);
-    vfprintf(fp, szFormat, vl);
+    int n = vsnprintf(buffer, 1023, szFormat, vl);
+    buffer[n] = 0;
+    file.write(buffer);
     va_end(vl);
     va_start(vl, szFormat);
     vfprintf(stdout, szFormat, vl);
     va_end(vl);
 
-    fprintf(fp, "\n");
+    file.write("\n");
     fprintf(stdout, "\n");
-
-    fclose(fp);
 }
 
 BSGL_Impl::BSGL_Impl() {
@@ -327,17 +299,15 @@ BSGL_Impl::BSGL_Impl() {
     fpLogicFunc     = 0;
     fpRenderFunc    = 0;
     fTime = 0.0f;
-#if defined(CC_TARGET_OS_IPHONE)
-    struct timeval tv;
-    gettimeofday(&tv, 0);
-    fStartTime = tv.tv_sec  + tv.tv_usec / 1000000.0f;
-#endif
     fDeltaTime = 0.0f;
     nFPS = 0;
     nPolyMode = 0;
 
     this->_key_buf = new unsigned int[_KEY_BUF_SIZE];
     memset(_key_buf, 0, _KEY_BUF_SIZE*sizeof(unsigned int));
+
+    memset(qtKeyStates, 0, 0xFF*sizeof(bool));
+    qtLeftButton = qtRightButton = false;
 }
 
 void CALL BSGL_Impl::_LoadConfig(char const* filename) {
@@ -372,3 +342,18 @@ void BSGL_Impl::_PostError(const char* error, ...) {
     strcpy(szError, _error);
 }
 
+int main(int argc, char** argv) {
+    QApplication app(argc, argv);
+    a = &app;
+
+    MainWindow w;
+    w.show();
+
+    MainTask task(a);
+    QObject::connect(a, SIGNAL(lastWindowClosed()), &task, SLOT(quit()));
+    QObject::connect(&task, SIGNAL(finished()), a, SLOT(quit()));
+    QTimer::singleShot(0, &task, SLOT(run()));
+
+    int ret = app.exec();
+    return ret;
+}

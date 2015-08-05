@@ -237,36 +237,36 @@ struct bsglQuad {
 */
 class BSGL {
 public:
-    virtual void    CALL Release() = 0;
+    virtual void        CALL Release() = 0;
 
-    virtual bool    CALL System_Initiate() = 0;
-    virtual void    CALL System_Shutdown() = 0;
-    virtual bool    CALL System_Start() = 0;
+    virtual bool        CALL System_Initiate() = 0;
+    virtual void        CALL System_Shutdown() = 0;
+    virtual bool        CALL System_Start() = 0;
 
-    virtual char*   CALL System_GetErrorMessage() = 0;
+    virtual char*       CALL System_GetErrorMessage() = 0;
 
-    virtual void    CALL System_SetStateBool(bsglBoolState state, bool value) = 0;
-    virtual void    CALL System_SetStateFunc(bsglFuncState state, bsglCallback value) = 0;
-    virtual void    CALL System_SetStateInt(bsglIntState state, int value) = 0;
-    virtual int     CALL System_GetStateInt(bsglIntState state) = 0;
-    virtual void    CALL System_SetStateString(bsglStringState state, char const* value) = 0;
+    virtual void        CALL System_SetStateBool(bsglBoolState state, bool value) = 0;
+    virtual void        CALL System_SetStateFunc(bsglFuncState state, bsglCallback value) = 0;
+    virtual void        CALL System_SetStateInt(bsglIntState state, int value) = 0;
+    virtual int         CALL System_GetStateInt(bsglIntState state) = 0;
+    virtual void        CALL System_SetStateString(bsglStringState state, char const* value) = 0;
 
-    virtual void    CALL System_Log(char const *format, ...) = 0;
+    virtual void        CALL System_Log(char const *format, ...) = 0;
 
-    virtual void    CALL Config_SetInt(char const* section, char const* option, int value) = 0;
-    virtual int     CALL Config_GetInt(char const* section, char const* option, int def_val) = 0;
-    virtual void    CALL Config_SetFloat(char const* section, char const* option, float value) = 0;
-    virtual float   CALL Config_GetFloat(char const* section, char const* option, float def_val) = 0;
-    virtual void    CALL Config_SetString(char const* section, char const* option, char const* value) = 0;
-    virtual char*   CALL Config_GetString(char const* section, char const* option, char const* def_val) = 0;
+    virtual void        CALL Config_SetInt(char const* section, char const* option, int value) = 0;
+    virtual int         CALL Config_GetInt(char const* section, char const* option, int def_val) = 0;
+    virtual void        CALL Config_SetFloat(char const* section, char const* option, float value) = 0;
+    virtual float       CALL Config_GetFloat(char const* section, char const* option, float def_val) = 0;
+    virtual void        CALL Config_SetString(char const* section, char const* option, char const* value) = 0;
+    virtual char*       CALL Config_GetString(char const* section, char const* option, char const* def_val) = 0;
 
-    virtual void    CALL Random_Seed(int seed=0) = 0;
-    virtual int     CALL Random_Int(int min, int max) = 0;
-    virtual float   CALL Random_Float(float min, float max) = 0;
+    virtual void        CALL Random_Seed(int seed=0) = 0;
+    virtual int         CALL Random_Int(int min, int max) = 0;
+    virtual float       CALL Random_Float(float min, float max) = 0;
 
-    virtual float   CALL Timer_GetTime() = 0;
-    virtual float   CALL Timer_GetDelta() = 0;
-    virtual int     CALL Timer_GetFPS() = 0;
+    virtual float       CALL Timer_GetTime() = 0;
+    virtual float       CALL Timer_GetDelta() = 0;
+    virtual int         CALL Timer_GetFPS() = 0;
 
     virtual bool        CALL Gfx_BeginScene() = 0;
     virtual void        CALL Gfx_EndScene() = 0;
@@ -294,18 +294,6 @@ public:
     virtual bool        CALL Control_IsUp(int key) = 0;
     virtual int         CALL Control_GetMouseX() = 0;
     virtual int         CALL Control_GetMouseY() = 0;
-
-private:
-/*
-    virtual void            CALL System_SetStateBool  (bsglBoolState   state, bool        value) = 0;
-    virtual void            CALL System_SetStateFunc  (bsglFuncState   state, bsglCallback value) = 0;
-    virtual void            CALL System_SetStateInt   (bsglIntState    state, int         value) = 0;
-    virtual void            CALL System_SetStateString(bsglStringState state, char const *value) = 0;
-    virtual bool            CALL System_GetStateBool  (bsglBoolState   state) = 0;
-    virtual bsglCallback    CALL System_GetStateFunc  (bsglFuncState   state) = 0;
-    virtual int             CALL System_GetStateInt   (bsglIntState    state) = 0;
-    virtual char const*     CALL System_GetStateString(bsglStringState state) = 0;
-*/
 };
 
 extern "C" { EXPORT BSGL* CALL bsglCreate(int ver); }
