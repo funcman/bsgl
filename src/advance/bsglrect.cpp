@@ -1,6 +1,6 @@
 /*
 ** Buggy-Mushroom's Spore Game Library
-** Copyright (C) 2008-2009, Buggy-Mushroom Studio
+** Copyright (c) 2008-2026 Buggy-Mushroom Studio
 **
 ** bsglRect util class implementation
 */

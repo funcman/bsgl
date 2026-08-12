@@ -1,6 +1,6 @@
 /*
  ** Buggy-Mushroom's Spore Game Library
- ** Copyright (C) 2008-2015, Buggy-Mushroom Studio
+ ** Copyright (c) 2008-2026 Buggy-Mushroom Studio
  **
  ** bsglFont class implementation
  */

@@ -1,4 +1,4 @@
-BSGL - Buggy-Mushroom's Simple Game Library
+BSGL - Buggy-Mushroom's Spore Game Library
 ====
 
 A OpenGL port of HGE, running on SDL3.
