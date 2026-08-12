@@ -34,6 +34,10 @@ set(FT_DISABLE_HARFBUZZ TRUE CACHE BOOL "" FORCE)
 set(FT_DISABLE_BROTLI  TRUE CACHE BOOL "" FORCE)
 add_subdirectory(3rd/freetype EXCLUDE_FROM_ALL)
 
+# tinyxml2
+set(tinyxml2_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+add_subdirectory(3rd/tinyxml2 EXCLUDE_FROM_ALL)
+
 #--- bsgl static library -------------------------------------------------
 add_library(bsgl STATIC
     src/core/system.cpp
@@ -47,10 +51,6 @@ add_library(bsgl STATIC
     src/advance/bsglanim.cpp
     src/gui/bsglfont.cpp
     src/gui/bsglwidget.cpp
-    src/dependencies/tinyxml/tinystr.cpp
-    src/dependencies/tinyxml/tinyxmlparser.cpp
-    src/dependencies/tinyxml/tinyxmlerror.cpp
-    src/dependencies/tinyxml/tinyxml.cpp
 )
 
 target_include_directories(bsgl
@@ -58,11 +58,10 @@ target_include_directories(bsgl
         include
     PRIVATE
         src/core
-        src/dependencies/tinyxml
 )
 
 # freetype is PUBLIC: include/bsglfont.h includes <ft2build.h>
-target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype)
+target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2)
 
 # OpenGL
 if(WIN32)

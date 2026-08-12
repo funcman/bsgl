@@ -6,7 +6,9 @@
 */
 
 #include "bsgl_impl.h"
-#include "tinyxml.h"
+#include <tinyxml2.h>
+
+using namespace tinyxml2;
 
 void CALL BSGL_Impl::Config_SetInt(const char* section, const char* option, int value) {
     char buf[256];
@@ -16,37 +18,29 @@ void CALL BSGL_Impl::Config_SetInt(const char* section, const char* option, int 
         return;
     }
 
-    TiXmlDocument config_doc;
+    XMLDocument config_doc;
     config_doc.LoadFile(szCfgFile);
 
-    TiXmlNode* section_node = config_doc.FirstChild(section);
+    XMLElement* section_node = config_doc.FirstChildElement(section);
     if( 0 == section_node ) {
-        TiXmlElement new_element(section);
-        section_node = config_doc.InsertEndChild(new_element);
-        if( 0 == section_node ) {
+        section_node = config_doc.NewElement(section);
+        if( 0 == config_doc.InsertEndChild(section_node) ) {
             _PostError("Can't insert a section node.");
         }
     }
 
-    TiXmlNode* option_node = section_node->FirstChild(option);
+    XMLElement* option_node = section_node->FirstChildElement(option);
     if( 0 == option_node ) {
-        TiXmlElement new_element(option);
-        option_node = section_node->InsertEndChild(new_element);
-        if( 0 == option_node ) {
+        option_node = config_doc.NewElement(option);
+        if( 0 == section_node->InsertEndChild(option_node) ) {
             _PostError("Can't insert a option node.");
         }
-        TiXmlText nulltext("");
-        option_node->InsertEndChild(nulltext);
     }
 
-    TiXmlNode* node = option_node->FirstChild();
-    if( node != 0 ) {
-        sprintf(buf, "%d", value);
-        TiXmlText text(buf);
-        option_node->ReplaceChild(node, text);
-    }
+    sprintf(buf, "%d", value);
+    option_node->SetText(buf);
 
-    config_doc.SaveFile();
+    config_doc.SaveFile(szCfgFile);
 }
 
 int CALL BSGL_Impl::Config_GetInt(const char* section, const char* option, int def_val) {
@@ -54,19 +48,16 @@ int CALL BSGL_Impl::Config_GetInt(const char* section, const char* option, int d
         return def_val;
     }
 
-    TiXmlDocument config_doc;
+    XMLDocument config_doc;
     config_doc.LoadFile(szCfgFile);
 
-    TiXmlNode* section_node = config_doc.FirstChild(section);
+    XMLElement* section_node = config_doc.FirstChildElement(section);
     if( section_node != 0 ) {
-        TiXmlNode* option_node = section_node->FirstChild(option);
+        XMLElement* option_node = section_node->FirstChildElement(option);
         if( option_node != 0 ) {
-            TiXmlNode* node = option_node->FirstChild();
-            if( node != 0 ) {
-                TiXmlText* text = node->ToText();
-                if( text != 0 ) {
-                    return atoi(text->Value());
-                }
+            char const* text = option_node->GetText();
+            if( text != 0 ) {
+                return atoi(text);
             }
         }
     }
@@ -82,37 +73,29 @@ void CALL BSGL_Impl::Config_SetFloat(const char* section, const char* option, fl
         return;
     }
 
-    TiXmlDocument config_doc;
+    XMLDocument config_doc;
     config_doc.LoadFile(szCfgFile);
 
-    TiXmlNode* section_node = config_doc.FirstChild(section);
+    XMLElement* section_node = config_doc.FirstChildElement(section);
     if( 0 == section_node ) {
-        TiXmlElement new_element(section);
-        section_node = config_doc.InsertEndChild(new_element);
-        if( 0 == section_node ) {
+        section_node = config_doc.NewElement(section);
+        if( 0 == config_doc.InsertEndChild(section_node) ) {
             _PostError("Can't insert a section node.");
         }
     }
 
-    TiXmlNode* option_node = section_node->FirstChild(option);
+    XMLElement* option_node = section_node->FirstChildElement(option);
     if( 0 == option_node ) {
-        TiXmlElement new_element(option);
-        option_node = section_node->InsertEndChild(new_element);
-        if( 0 == option_node ) {
+        option_node = config_doc.NewElement(option);
+        if( 0 == section_node->InsertEndChild(option_node) ) {
             _PostError("Can't insert a option node.");
         }
-        TiXmlText nulltext("");
-        option_node->InsertEndChild(nulltext);
     }
 
-    TiXmlNode* node = option_node->FirstChild();
-    if( node != 0 ) {
-        sprintf(buf, "%f", value);
-        TiXmlText text(buf);
-        option_node->ReplaceChild(node, text);
-    }
+    sprintf(buf, "%f", value);
+    option_node->SetText(buf);
 
-    config_doc.SaveFile();
+    config_doc.SaveFile(szCfgFile);
 }
 
 float CALL BSGL_Impl::Config_GetFloat(const char* section, const char* option, float def_val) {
@@ -120,19 +103,16 @@ float CALL BSGL_Impl::Config_GetFloat(const char* section, const char* option, f
         return def_val;
     }
 
-    TiXmlDocument config_doc;
+    XMLDocument config_doc;
     config_doc.LoadFile(szCfgFile);
 
-    TiXmlNode* section_node = config_doc.FirstChild(section);
+    XMLElement* section_node = config_doc.FirstChildElement(section);
     if( section_node != 0 ) {
-        TiXmlNode* option_node = section_node->FirstChild(option);
+        XMLElement* option_node = section_node->FirstChildElement(option);
         if( option_node != 0 ) {
-            TiXmlNode* node = option_node->FirstChild();
-            if( node != 0 ) {
-                TiXmlText* text = node->ToText();
-                if( text != 0 ) {
-                    return (float)atof(text->Value());
-                }
+            char const* text = option_node->GetText();
+            if( text != 0 ) {
+                return (float)atof(text);
             }
         }
     }
@@ -146,36 +126,28 @@ void CALL BSGL_Impl::Config_SetString(const char* section, const char* option, c
         return;
     }
 
-    TiXmlDocument config_doc;
+    XMLDocument config_doc;
     config_doc.LoadFile(szCfgFile);
 
-    TiXmlNode* section_node = config_doc.FirstChild(section);
+    XMLElement* section_node = config_doc.FirstChildElement(section);
     if( 0 == section_node ) {
-        TiXmlElement new_element(section);
-        section_node = config_doc.InsertEndChild(new_element);
-        if( 0 == section_node ) {
+        section_node = config_doc.NewElement(section);
+        if( 0 == config_doc.InsertEndChild(section_node) ) {
             _PostError("Can't insert a section node.");
         }
     }
 
-    TiXmlNode* option_node = section_node->FirstChild(option);
+    XMLElement* option_node = section_node->FirstChildElement(option);
     if( 0 == option_node ) {
-        TiXmlElement new_element(option);
-        option_node = section_node->InsertEndChild(new_element);
-        if( 0 == option_node ) {
+        option_node = config_doc.NewElement(option);
+        if( 0 == section_node->InsertEndChild(option_node) ) {
             _PostError("Can't insert a option node.");
         }
-        TiXmlText nulltext("");
-        option_node->InsertEndChild(nulltext);
     }
 
-    TiXmlNode* node = option_node->FirstChild();
-    if( node != 0 ) {
-        TiXmlText text(value);
-        option_node->ReplaceChild(node, text);
-    }
+    option_node->SetText(value);
 
-    config_doc.SaveFile();
+    config_doc.SaveFile(szCfgFile);
 }
 
 char* CALL BSGL_Impl::Config_GetString(const char* section, const char* option, const char* def_val) {
@@ -184,20 +156,17 @@ char* CALL BSGL_Impl::Config_GetString(const char* section, const char* option, 
         return szCfgString;
     }
 
-    TiXmlDocument config_doc;
+    XMLDocument config_doc;
     config_doc.LoadFile(szCfgFile);
 
-    TiXmlNode* section_node = config_doc.FirstChild(section);
+    XMLElement* section_node = config_doc.FirstChildElement(section);
     if( section_node != 0 ) {
-        TiXmlNode* option_node = section_node->FirstChild(option);
+        XMLElement* option_node = section_node->FirstChildElement(option);
         if( option_node != 0 ) {
-            TiXmlNode* node = option_node->FirstChild();
-            if( node != 0 ) {
-                TiXmlText* text = node->ToText();
-                if( text != 0 ) {
-                    strcpy(szCfgString, text->Value());
-                    return szCfgString;
-                }
+            char const* text = option_node->GetText();
+            if( text != 0 ) {
+                strcpy(szCfgString, text);
+                return szCfgString;
             }
         }
     }
@@ -205,4 +174,3 @@ char* CALL BSGL_Impl::Config_GetString(const char* section, const char* option, 
     strcpy(szCfgString, def_val);
     return szCfgString;
 }
-
