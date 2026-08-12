@@ -73,3 +73,9 @@ else()
     find_package(OpenGL REQUIRED)
     target_link_libraries(bsgl PUBLIC OpenGL::GL)
 endif()
+
+#--- Tutorials -----------------------------------------------------------
+option(BSGL_BUILD_TUTORIALS "Build the BSGL tutorials" ON)
+if(BSGL_BUILD_TUTORIALS)
+    add_subdirectory(tutorials)
+endif()

@@ -36,8 +36,9 @@ typedef unsigned char       BYTE;
 /*
 ** Handle types
 */
-typedef DWORD HTEXTURE;
-//typedef DWORD HTARGET;
+#include <stdint.h>
+typedef uintptr_t HTEXTURE;
+//typedef uintptr_t HTARGET;
 typedef DWORD HEFFECT;
 typedef DWORD HMUSIC;
 typedef DWORD HSTREAM;

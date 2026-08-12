@@ -362,7 +362,9 @@ bool BSGL_Impl::_GfxInit() {
 
 void BSGL_Impl::_GfxDone() {
     delete[] VertArray;
+    VertArray = 0;
     delete[] indexes;
+    indexes = 0;
     while(textures) {
         Texture_Free(textures->tex);
     }

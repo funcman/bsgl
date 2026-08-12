@@ -283,10 +283,10 @@ void CALL BSGL_Impl::System_SetStateString(bsglStringState state, const char* va
             break;
         case BSGL_LOGFILE:
             if( value != 0 ) {
-                FILE* file = fopen(szLogFile, "a");
-                strcpy(szLogFile, value);
+                FILE* file = fopen(value, "a");
                 if (file) {
                     fclose(file);
+                    strcpy(szLogFile, value);
                 } else {
                     szLogFile[0] = (char)0;
                 }
@@ -351,6 +351,9 @@ BSGL_Impl::BSGL_Impl() {
     nPolyMode = 0;
     window = 0;
     gl_context = 0;
+    textures = 0;
+    indexes = 0;
+    VertArray = 0;
 
     this->_key_buf = new unsigned int[_KEY_BUF_SIZE];
     memset(_key_buf, 0, _KEY_BUF_SIZE*sizeof(unsigned int));
