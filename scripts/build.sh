@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+#=====================================================================
+# build.sh - BSGL one-click build script (Linux / macOS)
+#
+# Usage:
+#   scripts/build.sh                 # Release build
+#   scripts/build.sh Debug           # Debug build
+#   scripts/build.sh --clean         # Clean and rebuild (can combine with Debug)
+#   scripts/build.sh clean           # Clean only, do not build
+#=====================================================================
+set -e
+
+CONFIG="Release"
+CLEAN=0
+CLEAN_ONLY=0
+
+for arg in "$@"; do
+    case "$arg" in
+        Debug|Release) CONFIG="$arg" ;;
+        --clean|-c)    CLEAN=1 ;;
+        clean)         CLEAN=1; CLEAN_ONLY=1 ;;
+        *) echo "Unknown argument: $arg" >&2; exit 1 ;;
+    esac
+done
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD="$ROOT/build"
+
+do_clean() {
+    echo "==> Cleaning build artifacts ..."
+    rm -rf "$BUILD"
+}
+
+if [ "$CLEAN" -eq 1 ]; then
+    do_clean
+    [ "$CLEAN_ONLY" -eq 1 ] && exit 0
+fi
+
+# Initialize git submodules (3rd/SDL3)
+if [ -e "$ROOT/.git" ]; then
+    if [ ! -f "$ROOT/3rd/SDL3/CMakeLists.txt" ]; then
+        echo "==> Initializing git submodules ..."
+        git -C "$ROOT" submodule update --init --recursive
+    fi
+fi
+
+if ! command -v cmake >/dev/null 2>&1; then
+    echo "cmake not found" >&2
+    exit 1
+fi
+
+echo "==> Configuring ($CONFIG) ..."
+cmake -S "$ROOT" -B "$BUILD" -DCMAKE_BUILD_TYPE="$CONFIG"
+
+echo "==> Building ..."
+cmake --build "$BUILD" --parallel
+
+echo ""
+echo "==> Build complete"
+echo "    Binaries:  $BUILD/bin"

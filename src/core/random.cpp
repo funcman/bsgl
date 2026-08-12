@@ -11,7 +11,7 @@ static unsigned int g_seed = 0;
 
 void CALL BSGL_Impl::Random_Seed(int seed) {
     if( 0 == seed ) {
-        g_seed = QTime().elapsed();
+        g_seed = (unsigned int)SDL_GetTicks();
     }else {
         g_seed = seed;
     }

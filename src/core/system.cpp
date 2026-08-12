@@ -2,21 +2,19 @@
 ** Buggy-Mushroom's Spore Game Library
 ** Copyright (C) 2008, Buggy-Mushroom Studio
 **
-** Core system functions
+** Core system functions (SDL3 frontend)
 */
 
 #include "bsgl_impl.h"
 
-#include <QApplication>
-#include <QTimer>
-
-#include "MainWindow.h"
-#include "MainTask.h"
-#include "ScreenWidget.h"
+#include <SDL3/SDL_main.h>
 
 #define _KEY_BUF_SIZE 256
 
-QApplication* a;
+extern void _InitOGL();
+extern void _Resize(int, int);
+
+extern void bsgl_main();
 
 bool isRunning = false;
 
@@ -55,6 +53,31 @@ bool CALL BSGL_Impl::System_Initiate() {
 
     _LoadConfig("config.xml");
 
+    Uint32 flags = SDL_WINDOW_OPENGL;
+    if( !bWindowed ) {
+        flags |= SDL_WINDOW_FULLSCREEN;
+    }
+    window = SDL_CreateWindow(szTitle[0] ? szTitle : "BSGL GAME",
+                              nScreenWidth, nScreenHeight, flags);
+    if( 0 == window ) {
+        _PostError("Can't create the window: %s", SDL_GetError());
+        System_Shutdown();
+        return false;
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    gl_context = SDL_GL_CreateContext(window);
+    if( 0 == gl_context ) {
+        _PostError("Can't create the OpenGL context: %s", SDL_GetError());
+        System_Shutdown();
+        return false;
+    }
+    SDL_GL_MakeCurrent(window, gl_context);
+    SDL_GL_SetSwapInterval(1);
+
+    _InitOGL();
+    _Resize(nScreenWidth, nScreenHeight);
+
     if( !_GfxInit() ) {
         _PostError("Can't initialize OpenGL.");
         System_Shutdown();
@@ -72,13 +95,34 @@ void CALL BSGL_Impl::System_Shutdown() {
     System_Log("\nFinishing...");
     _GfxDone();
 
+    if( gl_context ) {
+        SDL_GL_DestroyContext(gl_context);
+        gl_context = 0;
+    }
+    if( window ) {
+        SDL_DestroyWindow(window);
+        window = 0;
+    }
+
     System_Log("The End.");
 }
 
+static void _PumpEvents() {
+    SDL_Event event;
+    while( SDL_PollEvent(&event) ) {
+        switch( event.type ) {
+            case SDL_EVENT_QUIT:
+                isRunning = false;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 bool CALL BSGL_Impl::System_Start() {
-    QTime clock;
-    clock.start();
-    float time = clock.elapsed() / 1000.0f;
+    float freq = (float)SDL_GetPerformanceFrequency();
+    float time = (float)SDL_GetPerformanceCounter() / freq;
     float old_time = time;
     float old_logic_time = time;
     float old_render_time = time;
@@ -88,16 +132,16 @@ bool CALL BSGL_Impl::System_Start() {
     unsigned int fps = 0;
 
     while( isRunning ) {
-        a->processEvents();
+        _PumpEvents();
 
-        time = clock.elapsed() / 1000.0f;
+        time = (float)SDL_GetPerformanceCounter() / freq;
         float _t = time - old_time;
         old_time = time;
         fTime += _t;
         if( !bActive ) {
             old_logic_time += _t;
             old_render_time += _t;
-            QThread::usleep(1);
+            SDL_DelayNS(1000);
             continue;
         }
 
@@ -127,8 +171,7 @@ bool CALL BSGL_Impl::System_Start() {
                 }
                 ++fps;
             }
-            //glFlush();
-            ScreenWidget::instance()->updateGL();
+            SDL_GL_SwapWindow(window);
 
             //fRenderDeltaTime
             render_dt = ( time - old_render_time );
@@ -146,7 +189,7 @@ bool CALL BSGL_Impl::System_Start() {
             time4fps += 1.0f;
         }
 
-        QThread::usleep(1);
+        SDL_DelayNS(1000);
     }
     return true;
 }
@@ -240,9 +283,11 @@ void CALL BSGL_Impl::System_SetStateString(bsglStringState state, const char* va
             break;
         case BSGL_LOGFILE:
             if( value != 0 ) {
-                QFile file(szLogFile);
+                FILE* file = fopen(szLogFile, "a");
                 strcpy(szLogFile, value);
-                if (!file.isWritable()) {
+                if (file) {
+                    fclose(file);
+                } else {
                     szLogFile[0] = (char)0;
                 }
             }else {
@@ -265,8 +310,8 @@ void CALL BSGL_Impl::System_Log(const char *szFormat, ...) {
         return;
     }
 
-    QFile file(szLogFile);
-    if (!file.open(QIODevice::Append)) {
+    FILE* file = fopen(szLogFile, "a");
+    if (!file) {
         return;
     }
 
@@ -275,14 +320,16 @@ void CALL BSGL_Impl::System_Log(const char *szFormat, ...) {
     va_start(vl, szFormat);
     int n = vsnprintf(buffer, 1023, szFormat, vl);
     buffer[n] = 0;
-    file.write(buffer);
+    fwrite(buffer, 1, n, file);
     va_end(vl);
     va_start(vl, szFormat);
     vfprintf(stdout, szFormat, vl);
     va_end(vl);
 
-    file.write("\n");
+    fwrite("\n", 1, 1, file);
     fprintf(stdout, "\n");
+
+    fclose(file);
 }
 
 BSGL_Impl::BSGL_Impl() {
@@ -302,12 +349,11 @@ BSGL_Impl::BSGL_Impl() {
     fDeltaTime = 0.0f;
     nFPS = 0;
     nPolyMode = 0;
+    window = 0;
+    gl_context = 0;
 
     this->_key_buf = new unsigned int[_KEY_BUF_SIZE];
     memset(_key_buf, 0, _KEY_BUF_SIZE*sizeof(unsigned int));
-
-    memset(qtKeyStates, 0, 0xFF*sizeof(bool));
-    qtLeftButton = qtRightButton = false;
 }
 
 void CALL BSGL_Impl::_LoadConfig(char const* filename) {
@@ -343,17 +389,14 @@ void BSGL_Impl::_PostError(const char* error, ...) {
 }
 
 int main(int argc, char** argv) {
-    QApplication app(argc, argv);
-    a = &app;
+    if( !SDL_Init(SDL_INIT_VIDEO) ) {
+        fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
+        return 1;
+    }
 
-    MainWindow w;
-    w.show();
+    isRunning = true;
+    bsgl_main();
 
-    MainTask task(a);
-    QObject::connect(a, SIGNAL(lastWindowClosed()), &task, SLOT(quit()));
-    QObject::connect(&task, SIGNAL(finished()), a, SLOT(quit()));
-    QTimer::singleShot(0, &task, SLOT(run()));
-
-    int ret = app.exec();
-    return ret;
+    SDL_Quit();
+    return 0;
 }

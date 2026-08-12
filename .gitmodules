@@ -1,0 +1,7 @@
+[submodule "3rd/SDL3"]
+	path = 3rd/SDL3
+	url = https://github.com/libsdl-org/SDL.git
+	branch = release-3.2.x
+[submodule "3rd/freetype"]
+	path = 3rd/freetype
+	url = https://github.com/freetype/freetype.git

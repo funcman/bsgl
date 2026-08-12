@@ -1,0 +1,15 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.ps1]
+charset = utf-8-bom
+end_of_line = crlf
+
+[{*.sh,*.bash}]
+charset = utf-8
+end_of_line = lf

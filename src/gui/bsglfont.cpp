@@ -7,19 +7,26 @@
 
 #include "bsglfont.h"
 #include <string>
-#include <ftglyph.h>
-#include <QFile>
+#include <stdio.h>
 
 BSGL* bsglFont::bsgl=0;
 
 bsglFont::bsglFont(char const* filename, int size) {
     bsgl = bsglCreate(BSGL_VERSION);
     FT_Init_FreeType(&ft);
-    QFile file(filename);
-    file.open(QIODevice::ReadOnly);
-    font_data = new unsigned char[file.size()];
-    file.read((char*)font_data, (qint64)file.size());
-    FT_New_Memory_Face(ft, (FT_Byte const*)font_data, file.size(), 0, &face);
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        font_data = 0;
+        face = 0;
+        return;
+    }
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    font_data = new unsigned char[file_size];
+    fread(font_data, file_size, 1, file);
+    fclose(file);
+    FT_New_Memory_Face(ft, (FT_Byte const*)font_data, file_size, 0, &face);
 
     FT_Set_Pixel_Sizes(face, size, 0);
 }

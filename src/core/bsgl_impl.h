@@ -13,7 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <QtOpenGL>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 
 #define VERTEX_BUFFER_SIZE 4000
 
@@ -24,10 +25,6 @@ struct TextureList {
     int                 width;
     int                 height;
     struct TextureList* next;
-#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
-    int                 tex_width;
-    int                 tex_height;
-#endif
 };
 
 /*
@@ -113,10 +110,6 @@ private:
     TextureList*    textures;
     GLubyte*        indexes;
     bsglVertex*     VertArray;
-#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
-    GLuint          IBO;
-    GLuint          VBO;
-#endif
 
     int         nPrim;
     int         CurPrimType;
@@ -132,9 +125,9 @@ private:
     float   fTime;
     float   fDeltaTime;
     int     nFPS;
-#if defined(Q_OS_IOS) || defined(Q_OS_ANDROID)
-    float   fStartTime;
-#endif
+
+    SDL_Window*     window;
+    SDL_GLContext   gl_context;
 
     unsigned int*       _key_buf;
     int                 _mouse_x;
@@ -153,9 +146,6 @@ private:
 extern BSGL_Impl* pBSGL;
 
 extern bool isRunning;
-extern bool qtKeyStates[0xFF];
-extern bool qtLeftButton;
-extern bool qtRightButton;
 
 #endif//BSGL_IMPL_H
 

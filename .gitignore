@@ -1,22 +1,29 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
+#--- Build artifacts ----------------------------------------------------
+/build/
+/bin/
+/lib/
+*.log
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
+#--- Visual Studio / MSVC ------------------------------------------------
+.vs/
+*.user
+*.suo
+*.aps
+*.pdb
+*.ilk
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+#--- CMake temporary files -----------------------------------------------
+CMakeUserPresets.json
+compile_commands.json
+.cache/
 
-# Dependencies
-3rd_parties
-
-# Others
-.DS_Store
+#--- Editors -------------------------------------------------------------
+.vscode/
+.idea/
 *.swp
-*.swo
-*.pro.user
+*~
+
+#--- Operating system ----------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
