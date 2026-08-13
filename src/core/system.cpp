@@ -153,16 +153,21 @@ bool CALL BSGL_Impl::System_Start() {
 
         if ((0 == nLFPS)
          || ((time-old_logic_time) >= (1.0f/nLFPS))) {
+            // measure the real interval since the previous logic frame
+            // and hand it to the callback right away; resync instead of
+            // bursting catch-up frames when we fell a period behind
+            logic_dt = ( time - old_logic_time );
             fDeltaTime = logic_dt;
             if (fpLogicFunc != nullptr) {
                 if (fpLogicFunc()) {
                     break;
                 }
             }
-            //fLogicDeltaTime
-            logic_dt = ( time - old_logic_time );
             if (nLFPS != 0) {
                 old_logic_time += (1.0f/nLFPS);
+                if ((time-old_logic_time) >= (1.0f/nLFPS)) {
+                    old_logic_time = time;
+                }
             } else {
                 old_logic_time = time;
             }
@@ -170,6 +175,7 @@ bool CALL BSGL_Impl::System_Start() {
 
         if ((0 == nRFPS)
          || ((time-old_render_time) >= (1.0f/nRFPS))) {
+            render_dt = ( time - old_render_time );
             fDeltaTime = render_dt;
             if (fpRenderFunc != nullptr) {
                 if (fpRenderFunc()) {
@@ -179,10 +185,11 @@ bool CALL BSGL_Impl::System_Start() {
             }
             SDL_GL_SwapWindow(window);
 
-            //fRenderDeltaTime
-            render_dt = ( time - old_render_time );
             if (nRFPS != 0) {
                 old_render_time += (1.0f/nRFPS);
+                if ((time-old_render_time) >= (1.0f/nRFPS)) {
+                    old_render_time = time;
+                }
             } else {
                 old_render_time = time;
             }
