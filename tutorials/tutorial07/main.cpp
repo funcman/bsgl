@@ -1,19 +1,19 @@
 /*
-** BSGL Tutorial 07 - Thousand of Hares
-** (adapted from hge_tut07 - Thousand of Hares)
+** BSGL Tutorial 07 - Thousand of Mushrooms
+** (adapted from hge_tut07 - Thousand of Mushrooms)
 **
 ** A sprite batching stress test: up to 2000 sprites flying around,
 ** bouncing off the screen edges, scaling and rotating independently.
 **
-**   UP / DOWN - adjust the number of hares by 100
+**   UP / DOWN - adjust the number of mushrooms by 100
 **   SPACE     - cycle through 5 blending modes
 **   ESC       - quit
 **
-** The hare count, blend mode and FPS are displayed in the top left
+** The mushroom count, blend mode and FPS are displayed in the top left
 ** corner with a bsglFont text texture (see tutorial 04).
 **
 ** Required resource: "mushroom.bmp" - an uncompressed 32-bit BMP
-** holding the hare in its top left 64x64 pixels. See
+** holding the mushroom in its top left 64x64 pixels. See
 ** tutorials/README.md for how to provide it.
 */
 
@@ -28,7 +28,7 @@
 #define SCREEN_HEIGHT 600
 
 #define MIN_OBJECTS 100
-#define MAX_OBJECTS 2000
+#define MAX_OBJECTS 10000
 
 struct sprObject {
     float x, y;
@@ -56,20 +56,17 @@ static bsglSprite* text_spr = 0;
 static bsglFont*   font     = 0;
 static float       text_dt  = 1.0f; // force an immediate redraw
 
-// Find a usable .ttf file: local file first, system font as fallback
-static const char* FindFontFile() {
-    static const char* candidates[] = {
-        "font.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-    };
-    for( int i=0; i<2; ++i ) {
-        FILE* f = fopen(candidates[i], "rb");
-        if( f ) {
-            fclose(f);
-            return candidates[i];
-        }
+// The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
+// to the executable at build time - see tutorials/CMakeLists.txt.
+static const char* const FONT_FILE = "font.ttf";
+
+static bool FontFileExists() {
+    FILE* f = fopen(FONT_FILE, "rb");
+    if( f ) {
+        fclose(f);
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // Set up blending mode for the scene
@@ -110,7 +107,7 @@ static void SetBlend(int blend) {
     text_dt = 1.0f; // redraw the text with the new colors
 }
 
-// Redraw the info text (hare count, blend mode, FPS)
+// Redraw the info text (mushroom count, blend mode, FPS)
 static void UpdateText() {
     if( !font ) {
         return;
@@ -124,7 +121,7 @@ static void UpdateText() {
     bsgl->Texture_FreeData(pixels);
 
     char buf[96];
-    sprintf(buf, "UP/DOWN to adjust hares: %d", nObjects);
+    sprintf(buf, "UP/DOWN to adjust mushrooms: %d", nObjects);
     font->BeginDrawTexture(text_tex, 4, 20, 24);
     for( char const* p = buf; *p; ++p ) font->DrawGlyph((wchar_t)*p);
     font->EndDrawTexture();
@@ -189,7 +186,7 @@ bool RenderFunc() {
     // Background: an untextured fullscreen quad with per-vertex colors
     bsgl->Gfx_RenderQuad(&bgquad);
 
-    // Render the hares
+    // Render the mushrooms
     for( int i=0; i<nObjects; ++i ) {
         spr->SetColor(pObjects[i].color);
         spr->RenderEx(pObjects[i].x, pObjects[i].y,
@@ -211,13 +208,13 @@ void bsgl_main() {
     bsgl->System_SetStateString(BSGL_LOGFILE, "tutorial07.log");
     bsgl->System_SetStateFunc(BSGL_LOGICFUNC, LogicFunc);
     bsgl->System_SetStateFunc(BSGL_RENDERFUNC, RenderFunc);
-    bsgl->System_SetStateString(BSGL_TITLE, "BSGL Tutorial 07 - Thousand of Hares");
+    bsgl->System_SetStateString(BSGL_TITLE, "BSGL Tutorial 07 - Thousand of Mushrooms");
     bsgl->System_SetStateBool(BSGL_WINDOWED, true);
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, SCREEN_WIDTH);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, SCREEN_HEIGHT);
 
     if( bsgl->System_Initiate() ) {
-        // Load the hare texture (see the header comment about the format)
+        // Load the mushroom texture (see the header comment about the format)
         tex = bsgl->Texture_Load("mushroom.bmp");
         if( !tex ) {
             bsgl->System_Log("Error: can't load mushroom.bmp (see tutorials/README.md)");
@@ -226,7 +223,7 @@ void bsgl_main() {
             return;
         }
 
-        // Create the hare sprite: top left 64x64 of the texture
+        // Create the mushroom sprite: top left 64x64 of the texture
         spr = new bsglSprite(tex, 0, 0, 64, 64);
         spr->SetHotSpot(32, 32);
 
@@ -248,14 +245,13 @@ void bsgl_main() {
         }
 
         // Set up the info text display
-        char const* font_file = FindFontFile();
-        if( font_file ) {
-            bsgl->System_Log("Using font file: %s", font_file);
-            font = new bsglFont(font_file, 14);
+        if( FontFileExists() ) {
+            bsgl->System_Log("Using font file: %s", FONT_FILE);
+            font = new bsglFont(FONT_FILE, 14);
             text_tex = bsgl->Texture_Create(320, 64);
             text_spr = new bsglSprite(text_tex, 0, 0, 320, 64);
         }else {
-            bsgl->System_Log("Warning: no .ttf font found, no on-screen text.");
+            bsgl->System_Log("Warning: %s not found, no on-screen text.", FONT_FILE);
         }
 
         // Initialize the objects list

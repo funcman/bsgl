@@ -13,9 +13,9 @@
 **   - "Quit"  quits the application.
 **
 ** The button labels are text textures rendered with bsglFont,
-** exactly as shown in tutorial 04. The tutorial looks for "font.ttf"
-** in the working directory first, then falls back to the Windows
-** system Arial; without a font the buttons simply show no text.
+** exactly as shown in tutorial 04, using the bundled DejaVu Sans
+** font (tutorials/res/font.ttf). Without the font the buttons
+** simply show no text.
 ** Pressing ESC also quits.
 */
 
@@ -99,20 +99,17 @@ private:
 
 static bsglWidget* panel = 0;
 
-// Find a usable .ttf file: local file first, system font as fallback
-static const char* FindFontFile() {
-    static const char* candidates[] = {
-        "font.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-    };
-    for( int i=0; i<2; ++i ) {
-        FILE* f = fopen(candidates[i], "rb");
-        if( f ) {
-            fclose(f);
-            return candidates[i];
-        }
+// The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
+// to the executable at build time - see tutorials/CMakeLists.txt.
+static const char* const FONT_FILE = "font.ttf";
+
+static bool FontFileExists() {
+    FILE* f = fopen(FONT_FILE, "rb");
+    if( f ) {
+        fclose(f);
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // Render a text label into a fresh texture and wrap it in a sprite.
@@ -195,12 +192,11 @@ void bsgl_main() {
     if( bsgl->System_Initiate() ) {
         // Labels need a font; without one the menu still works
         bsglFont* font = 0;
-        char const* font_file = FindFontFile();
-        if( font_file ) {
-            bsgl->System_Log("Using font file: %s", font_file);
-            font = new bsglFont(font_file, 22);
+        if( FontFileExists() ) {
+            bsgl->System_Log("Using font file: %s", FONT_FILE);
+            font = new bsglFont(FONT_FILE, 22);
         }else {
-            bsgl->System_Log("Warning: no .ttf font found, buttons will have no labels.");
+            bsgl->System_Log("Warning: %s not found, buttons will have no labels.", FONT_FILE);
         }
 
         // The panel: a container widget with its own background

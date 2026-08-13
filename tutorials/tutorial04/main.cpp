@@ -12,9 +12,8 @@
 **   2. BeginDrawTexture() / DrawGlyph()... / EndDrawTexture()
 **   3. Render the texture with a bsglSprite.
 **
-** The tutorial looks for "font.ttf" in the working directory first,
-** then falls back to the Windows system Arial. Copy any .ttf next to
-** the executable to use your own font.
+** The tutorial uses the bundled DejaVu Sans font (tutorials/res/
+** font.ttf), which is copied next to the executable at build time.
 **
 ** Press ESC to quit.
 */
@@ -36,20 +35,17 @@ static bsglFont*   font_small = 0;
 
 static float fps_timer = 0.0f;
 
-// Find a usable .ttf file: local file first, system font as fallback
-static const char* FindFontFile() {
-    static const char* candidates[] = {
-        "font.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-    };
-    for( int i=0; i<2; ++i ) {
-        FILE* f = fopen(candidates[i], "rb");
-        if( f ) {
-            fclose(f);
-            return candidates[i];
-        }
+// The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
+// to the executable at build time - see tutorials/CMakeLists.txt.
+static const char* const FONT_FILE = "font.ttf";
+
+static bool FontFileExists() {
+    FILE* f = fopen(FONT_FILE, "rb");
+    if( f ) {
+        fclose(f);
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // Clear a texture to fully transparent pixels
@@ -118,17 +114,16 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, 600);
 
     if( bsgl->System_Initiate() ) {
-        char const* font_file = FindFontFile();
-        if( !font_file ) {
-            bsgl->System_Log("Error: no .ttf font found (tried font.ttf, C:/Windows/Fonts/arial.ttf)");
+        if( !FontFileExists() ) {
+            bsgl->System_Log("Error: %s not found (should have been copied from tutorials/res)", FONT_FILE);
             bsgl->System_Shutdown();
             bsgl->Release();
             return;
         }
-        bsgl->System_Log("Using font file: %s", font_file);
+        bsgl->System_Log("Using font file: %s", FONT_FILE);
 
-        font_big   = new bsglFont(font_file, 40);
-        font_small = new bsglFont(font_file, 16);
+        font_big   = new bsglFont(FONT_FILE, 40);
+        font_small = new bsglFont(FONT_FILE, 16);
 
         // Static title text, drawn once
         title_tex = bsgl->Texture_Create(512, 64);

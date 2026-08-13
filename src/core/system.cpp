@@ -9,6 +9,12 @@
 
 #include <SDL3/SDL_main.h>
 
+#ifdef _WIN32
+#include <direct.h>  // _chdir
+#else
+#include <unistd.h>  // chdir
+#endif
+
 #define _KEY_BUF_SIZE 256
 
 extern void _InitOGL();
@@ -392,6 +398,17 @@ void BSGL_Impl::_PostError(const char* error, ...) {
 }
 
 int main(int argc, char** argv) {
+    // Resolve relative paths against the executable's directory, so
+    // assets shipped next to the binary are found from any working
+    // directory the process happens to be launched from.
+    if( const char* base = SDL_GetBasePath() ) {
+#ifdef _WIN32
+        _chdir(base);
+#else
+        chdir(base);
+#endif
+    }
+
     if( !SDL_Init(SDL_INIT_VIDEO) ) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
