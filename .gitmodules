@@ -2,15 +2,24 @@
 	path = 3rd/SDL3
 	url = https://github.com/libsdl-org/SDL.git
 	branch = release-3.2.x
-[submodule "3rd/freetype"]
-	path = 3rd/freetype
-	url = https://github.com/freetype/freetype.git
 [submodule "3rd/tinyxml2"]
 	path = 3rd/tinyxml2
 	url = https://github.com/leethomason/tinyxml2
+[submodule "3rd/libspng"]
+	path = 3rd/libspng
+	url = https://github.com/randy408/libspng
+[submodule "3rd/libjpeg-turbo"]
+	path = 3rd/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo
+[submodule "3rd/freetype"]
+	path = 3rd/freetype
+	url = https://github.com/freetype/freetype.git
 [submodule "3rd/spine-runtimes"]
 	path = 3rd/spine-runtimes
 	url = https://github.com/EsotericSoftware/spine-runtimes
 [submodule "3rd/DragonBonesCPP"]
 	path = 3rd/DragonBonesCPP
 	url = https://github.com/DragonBones/DragonBonesCPP.git
+[submodule "3rd/zlib"]
+	path = 3rd/zlib
+	url = https://github.com/madler/zlib

@@ -21,6 +21,8 @@ set(BSGL_TUTORIALS
 # executables (globbed at configure time, so re-run the configure
 # step after adding a file, e.g. the zazaka.bmp for tutorial07)
 file(GLOB BSGL_TUT_RES "${CMAKE_CURRENT_SOURCE_DIR}/res/*.bmp"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.png"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.jpg"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.ttf"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.atlas"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.json")

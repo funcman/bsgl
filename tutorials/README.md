@@ -78,9 +78,12 @@ cmake -S . -B build -DBSGL_BUILD_TUTORIALS=OFF
   then query keys with `Control_IsDown()` (pressed this frame),
   `Control_IsPassing()` (held) and `Control_IsUp()` (released this
   frame).
-- **Textures.** `Texture_Load()` reads uncompressed 32-bit BMP files.
-  The tutorial artwork is generated procedurally — see
-  `res/gen_assets.py` (run `python res/gen_assets.py` to regenerate).
+- **Textures.** `Texture_Load()` picks the decoder by file name
+  suffix: `.png` (libspng) and `.jpg`/`.jpeg` (libjpeg-turbo) are
+  decoded directly; anything else is read as an uncompressed 32-bit
+  BMP. PNG keeps its alpha channel, JPEG does not. The tutorial
+  artwork is generated procedurally — see `res/gen_assets.py`
+  (run `python res/gen_assets.py` to regenerate).
 - **tutorial07 hare sprite.** The sprite texture is `res/mushroom.bmp`
   (an uncompressed 32-bit `BI_RGB` BMP, 64x64 with alpha). Swap in any
   other 64x64 BMP of the same format to change the hare; tutorial07

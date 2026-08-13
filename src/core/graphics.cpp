@@ -7,10 +7,13 @@
 
 #include "bsgl_impl.h"
 
+#include <spng.h>
+#include <turbojpeg.h>
+
 void _InitOGL();
 void _Resize(int, int);
 
-struct _BMP {
+struct _Bitmap {
     int             ow;
     int             oh;
     int             tw;
@@ -18,10 +21,30 @@ struct _BMP {
     unsigned char*  data;
 };
 
-struct _BMP*    _LoadBMP(char const* filename);
-void            _FreeBMP(struct _BMP* bmp);
+struct _Bitmap* _LoadBMP(char const* filename);
+struct _Bitmap* _LoadPNG(char const* filename);
+struct _Bitmap* _LoadJPG(char const* filename);
+void            _FreeBitmap(struct _Bitmap* bitmap);
 
 int powerOfTwo(int num);
+
+// case-insensitive file extension compare (".png" vs ".PNG")
+static bool _MatchExt(char const* filename, char const* ext) {
+    char const* dot = strrchr(filename, '.');
+    if (!dot) {
+        return false;
+    }
+    while (*dot && *ext) {
+        char a = *dot++;
+        char b = *ext++;
+        if (a >= 'A' && a <= 'Z') a += 'a' - 'A';
+        if (b >= 'A' && b <= 'Z') b += 'a' - 'A';
+        if (a != b) {
+            return false;
+        }
+    }
+    return *dot == *ext;
+}
 
 void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
     glClearColor((GLfloat)GETR(color), (GLfloat)GETG(color),
@@ -153,9 +176,20 @@ HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
 
 HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMipmap) {
     GLuint* texture = new GLuint;
-    struct _BMP* texture_image = nullptr;
+    struct _Bitmap* texture_image = nullptr;
     *texture = 0;
-    if ((texture_image=_LoadBMP(filename))) {
+
+    // the decoder is chosen by the file name suffix; anything that is
+    // not .png/.jpg/.jpeg is treated as an uncompressed 32-bit BMP
+    if (_MatchExt(filename, ".png")) {
+        texture_image = _LoadPNG(filename);
+    } else if (_MatchExt(filename, ".jpg") || _MatchExt(filename, ".jpeg")) {
+        texture_image = _LoadJPG(filename);
+    } else {
+        texture_image = _LoadBMP(filename);
+    }
+
+    if (texture_image) {
         glGenTextures(1, texture);
         glBindTexture(GL_TEXTURE_2D, *texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_image->tw,
@@ -180,7 +214,7 @@ HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMi
     texItem->next = textures;
     textures = texItem;
 
-    _FreeBMP(texture_image);
+    _FreeBitmap(texture_image);
 
     return (HTEXTURE)texture;
 }
@@ -446,7 +480,38 @@ int powerOfTwo(int num) {
     return r;
 }
 
-struct _BMP* _LoadBMP(char const* filename) {
+// build the power-of-two padded texture image from a decoded
+// top-down pixel buffer; set swapRB when the source is RGBA
+static struct _Bitmap* _CreateImageBGRA(unsigned char const* pixels, int w, int h, bool swapRB) {
+    struct _Bitmap* bitmap = (struct _Bitmap*)malloc(sizeof(struct _Bitmap));
+    bitmap->ow = w;
+    bitmap->oh = h;
+    bitmap->tw = powerOfTwo(w);
+    bitmap->th = powerOfTwo(h);
+    bitmap->data = (unsigned char*)malloc(bitmap->tw * bitmap->th * sizeof(unsigned int));
+    memset(bitmap->data, 0, bitmap->tw * bitmap->th * sizeof(unsigned int));
+    for (int y = 0; y < h; ++y) {
+        unsigned char* dst = bitmap->data + y * bitmap->tw * sizeof(unsigned int);
+        unsigned char const* src = pixels + y * w * sizeof(unsigned int);
+        if (swapRB) {
+            for (int x = 0; x < w; ++x) {
+                dst[x*4+0] = src[x*4+2];
+                dst[x*4+1] = src[x*4+1];
+                dst[x*4+2] = src[x*4+0];
+                dst[x*4+3] = src[x*4+3];
+            }
+        } else {
+            memcpy(dst, src, w * sizeof(unsigned int));
+        }
+    }
+    return bitmap;
+}
+
+void _FreeBitmap(struct _Bitmap* bitmap) {
+    free(bitmap->data);
+}
+
+struct _Bitmap* _LoadBMP(char const* filename) {
 #if defined(WIN32)
 #pragma pack(push)
 #pragma pack(1)
@@ -485,27 +550,95 @@ struct _BMP* _LoadBMP(char const* filename) {
 #pragma pack(pop)
 #endif
     FILE* file = fopen(filename, "rb");
-    struct _BMP* bmp;
+    struct _Bitmap* bitmap;
     if (!file) {
         return nullptr;
     }
-    bmp = (struct _BMP*)malloc(sizeof(struct _BMP));
+    bitmap = (struct _Bitmap*)malloc(sizeof(struct _Bitmap));
     fread(&header, sizeof(header), 1, file);
     fread(&info, sizeof(info), 1, file);
-    bmp->ow = info.width;
-    bmp->oh = info.height;
-    bmp->tw = powerOfTwo(bmp->ow);
-    bmp->th = powerOfTwo(bmp->oh);
-    bmp->data = (unsigned char*)malloc((bmp->tw)*(bmp->th)*sizeof(unsigned int));
-    memset(bmp->data, 0, bmp->tw*bmp->th*sizeof(unsigned int));
+    bitmap->ow = info.width;
+    bitmap->oh = info.height;
+    bitmap->tw = powerOfTwo(bitmap->ow);
+    bitmap->th = powerOfTwo(bitmap->oh);
+    bitmap->data = (unsigned char*)malloc((bitmap->tw)*(bitmap->th)*sizeof(unsigned int));
+    memset(bitmap->data, 0, bitmap->tw*bitmap->th*sizeof(unsigned int));
     fseek(file, header.offset, SEEK_SET);
-    for(int h=bmp->oh-1; h>=0; --h) {
-        fread((bmp->data)+h*bmp->tw*sizeof(unsigned int), sizeof(unsigned int)*bmp->ow, 1, file);
+    for(int h=bitmap->oh-1; h>=0; --h) {
+        fread((bitmap->data)+h*bitmap->tw*sizeof(unsigned int), sizeof(unsigned int)*bitmap->ow, 1, file);
     }
     fclose(file);
-    return bmp;
+    return bitmap;
 }
 
-void _FreeBMP(struct _BMP* bmp) {
-    free(bmp->data);
+struct _Bitmap* _LoadPNG(char const* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        return nullptr;
+    }
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    unsigned char* png = (unsigned char*)malloc(size);
+    if (!png || fread(png, 1, size, file) != (size_t)size) {
+        free(png);
+        fclose(file);
+        return nullptr;
+    }
+    fclose(file);
+
+    struct _Bitmap* bitmap = nullptr;
+    spng_ctx* ctx = spng_ctx_new(0);
+    if (ctx && spng_set_png_buffer(ctx, png, size) == 0) {
+        struct spng_ihdr ihdr;
+        size_t out_size = 0;
+        if (spng_get_ihdr(ctx, &ihdr) == 0
+        &&  spng_decoded_image_size(ctx, SPNG_FMT_RGBA8, &out_size) == 0) {
+            unsigned char* pixels = (unsigned char*)malloc(out_size);
+            if (pixels
+            &&  spng_decode_image(ctx, pixels, out_size, SPNG_FMT_RGBA8, SPNG_DECODE_TRNS) == 0) {
+                bitmap = _CreateImageBGRA(pixels, (int)ihdr.width, (int)ihdr.height, true);
+            }
+            free(pixels);
+        }
+    }
+    if (ctx) {
+        spng_ctx_free(ctx);
+    }
+    free(png);
+    return bitmap;
+}
+
+struct _Bitmap* _LoadJPG(char const* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        return nullptr;
+    }
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    unsigned char* jpg = (unsigned char*)malloc(size);
+    if (!jpg || fread(jpg, 1, size, file) != (size_t)size) {
+        free(jpg);
+        fclose(file);
+        return nullptr;
+    }
+    fclose(file);
+
+    struct _Bitmap* bitmap = nullptr;
+    tjhandle tj = tjInitDecompress();
+    if (tj) {
+        int w = 0, h = 0, subsamp = 0, colorspace = 0;
+        if (tjDecompressHeader3(tj, jpg, size, &w, &h, &subsamp, &colorspace) == 0) {
+            unsigned char* pixels = (unsigned char*)malloc((size_t)w * h * 4);
+            if (pixels
+            &&  tjDecompress2(tj, jpg, size, pixels, w, 0, h, TJPF_BGRA, 0) == 0) {
+                bitmap = _CreateImageBGRA(pixels, w, h, false);
+            }
+            free(pixels);
+        }
+        tjDestroy(tj);
+    }
+    free(jpg);
+    return bitmap;
 }
