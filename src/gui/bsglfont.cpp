@@ -9,15 +9,15 @@
 #include <string>
 #include <stdio.h>
 
-BSGL* bsglFont::bsgl=0;
+BSGL* bsglFont::bsgl=nullptr;
 
 bsglFont::bsglFont(char const* filename, int size) {
     bsgl = bsglCreate(BSGL_VERSION);
     FT_Init_FreeType(&ft);
     FILE* file = fopen(filename, "rb");
     if (!file) {
-        font_data = 0;
-        face = 0;
+        font_data = nullptr;
+        face = nullptr;
         return;
     }
     fseek(file, 0, SEEK_END);
@@ -42,7 +42,7 @@ bsglFont::~bsglFont() {
 
 void bsglFont::BeginDrawTexture(HTEXTURE tex, int ox, int oy, int height) {
     if (!face) {
-        data = 0;
+        data = nullptr;
         return;
     }
     origin_x = ox;
@@ -105,5 +105,5 @@ void bsglFont::EndDrawTexture() {
     }
     bsgl->Texture_Update(thetex, data, 0, 0, tex_w, tex_h);
     bsgl->Texture_FreeData(data);
-    data = 0;
+    data = nullptr;
 }

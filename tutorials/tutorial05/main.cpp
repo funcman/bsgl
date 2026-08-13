@@ -20,7 +20,7 @@
 
 #include "bsgl.h"
 
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 #define MAX_QUADS 64
 
@@ -30,7 +30,7 @@ static float    spawn_dt  = 0.0f;
 static int      run_count = 0;
 
 static void SpawnQuad() {
-    if( nquads >= MAX_QUADS ) {
+    if (nquads >= MAX_QUADS) {
         return;
     }
     bsglQuad* q = &quads[nquads++];
@@ -58,13 +58,13 @@ static void SpawnQuad() {
 
 bool LogicFunc() {
     bsgl->Control_GetState();
-    if( bsgl->Control_IsDown(INP_ESC) ) {
+    if (bsgl->Control_IsDown(INP_ESC)) {
         return true;
     }
 
     // Spawn a quad twice a second, using the logic frame delta
     spawn_dt += bsgl->Timer_GetDelta();
-    if( spawn_dt >= 0.5f ) {
+    if (spawn_dt >= 0.5f) {
         spawn_dt = 0.0f;
         SpawnQuad();
     }
@@ -96,7 +96,7 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, 800);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, 600);
 
-    if( bsgl->System_Initiate() ) {
+    if (bsgl->System_Initiate()) {
         // Seed the RNG. Passing 0 seeds it from the system tick count.
         bsgl->Random_Seed(0);
 
@@ -123,7 +123,7 @@ void bsgl_main() {
                          bsgl->Timer_GetTime(), nquads);
 
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 

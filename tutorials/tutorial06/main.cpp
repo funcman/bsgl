@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 static bool        quit_requested = false;
 static DWORD       bg_colors[] = {
@@ -55,15 +55,15 @@ public:
     void OnRender(float x, float y) {
         // draw the background quad first, the label on top
         bsglWidget::OnRender(x, y);
-        if( label_ ) {
+        if (label_) {
             label_->Render(x_+x, y_+y);
         }
     }
 
     void OnOver(float x, float y) {
-        if( TestAt(x, y) ) {
+        if (TestAt(x, y)) {
             SetBackgroundColor(RGBA(0xB0, 0xB0, 0xD0, 0xFF));
-        }else {
+        } else {
             SetBackgroundColor(RGBA(0x70, 0x70, 0x90, 0xFF));
         }
     }
@@ -73,7 +73,7 @@ public:
     }
 
     void OnUp(bool inside) {
-        if( !inside ) {
+        if (!inside) {
             return;
         }
         switch( id_ ) {
@@ -97,7 +97,7 @@ private:
     bsglSprite* label_;
 };
 
-static bsglWidget* panel = 0;
+static bsglWidget* panel = nullptr;
 
 // The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
 // to the executable at build time - see tutorials/CMakeLists.txt.
@@ -105,7 +105,7 @@ static const char* const FONT_FILE = "font.ttf";
 
 static bool FontFileExists() {
     FILE* f = fopen(FONT_FILE, "rb");
-    if( f ) {
+    if (f) {
         fclose(f);
         return true;
     }
@@ -141,7 +141,7 @@ static bsglSprite* CreateLabel(bsglFont* font, char const* text,
 bool LogicFunc() {
     bsgl->Control_GetState();
 
-    if( bsgl->Control_IsDown(INP_ESC) || quit_requested ) {
+    if (bsgl->Control_IsDown(INP_ESC) || quit_requested) {
         return true;
     }
 
@@ -152,13 +152,13 @@ bool LogicFunc() {
     float my = (float)bsgl->Control_GetMouseY();
 
     MouseState state;
-    if( bsgl->Control_IsDown(INP_MOUSEL) ) {
+    if (bsgl->Control_IsDown(INP_MOUSEL)) {
         state = MouseState_Down;
-    }else if( bsgl->Control_IsUp(INP_MOUSEL) ) {
+    } else if (bsgl->Control_IsUp(INP_MOUSEL)) {
         state = MouseState_Up;
-    }else if( bsgl->Control_IsPassing(INP_MOUSEL) ) {
+    } else if (bsgl->Control_IsPassing(INP_MOUSEL)) {
         state = MouseState_Passing;
-    }else {
+    } else {
         state = MouseState_Default;
     }
     panel->MouseAt(mx, my, state);
@@ -189,13 +189,13 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, 800);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, 600);
 
-    if( bsgl->System_Initiate() ) {
+    if (bsgl->System_Initiate()) {
         // Labels need a font; without one the menu still works
-        bsglFont* font = 0;
-        if( FontFileExists() ) {
+        bsglFont* font = nullptr;
+        if (FontFileExists()) {
             bsgl->System_Log("Using font file: %s", FONT_FILE);
             font = new bsglFont(FONT_FILE, 22);
-        }else {
+        } else {
             bsgl->System_Log("Warning: %s not found, buttons will have no labels.", FONT_FILE);
         }
 
@@ -208,7 +208,7 @@ void bsgl_main() {
         Button* buttons[3];
         char const* captions[3] = { "Color", "Log", "Quit" };
         for( int i=0; i<3; ++i ) {
-            bsglSprite* label = font ? CreateLabel(font, captions[i], 200, 60, &label_tex[i]) : 0;
+            bsglSprite* label = font ? CreateLabel(font, captions[i], 200, 60, &label_tex[i]) : nullptr;
             buttons[i] = new Button(50, 40 + i*80, 200, 60, i+1, label);
             panel->AddKid(buttons[i]);
         }
@@ -217,7 +217,7 @@ void bsgl_main() {
 
         for( int i=0; i<3; ++i ) {
             delete buttons[i];
-            if( label_tex[i] ) {
+            if (label_tex[i]) {
                 bsgl->Texture_Free(label_tex[i]);
             }
         }
@@ -225,7 +225,7 @@ void bsgl_main() {
         delete font;
 
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 

@@ -35,18 +35,18 @@
 #define SCREEN_HEIGHT 600
 
 // Pointer to the BSGL interface (helper classes require this to work)
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 // The Spine character
-static bsglSpine* spineboy = 0;
+static bsglSpine* spineboy = nullptr;
 
 // Background: an untextured fullscreen quad with per-vertex colors
 static bsglQuad bgquad;
 
 // Text display
 static HTEXTURE    text_tex = 0;
-static bsglSprite* text_spr = 0;
-static bsglFont*   font     = 0;
+static bsglSprite* text_spr = nullptr;
+static bsglFont*   font     = nullptr;
 static float       text_dt  = 1.0f; // force an immediate redraw
 
 // The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
@@ -55,7 +55,7 @@ static const char* const FONT_FILE = "font.ttf";
 
 static bool FontFileExists() {
     FILE* f = fopen(FONT_FILE, "rb");
-    if( f ) {
+    if (f) {
         fclose(f);
         return true;
     }
@@ -77,7 +77,7 @@ static void OnSpineComplete(int trackIndex, int loopCount, void* userdata) {
 
 // Redraw the info text (controls, current animation, FPS)
 static void UpdateText() {
-    if( !font ) {
+    if (!font) {
         return;
     }
 
@@ -106,26 +106,26 @@ bool LogicFunc() {
 
     bsgl->Control_GetState();
 
-    if( bsgl->Control_IsDown(INP_ESC) ) {
+    if (bsgl->Control_IsDown(INP_ESC)) {
         return true;
     }
 
     // Keyboard control
-    if( bsgl->Control_IsDown(INP_SPACE) ) {
+    if (bsgl->Control_IsDown(INP_SPACE)) {
         spineboy->SetAnimation(0, "jump", false);
         spineboy->AddAnimation(0, "idle", true, 0.0f);
-    }else if( bsgl->Control_IsPassing(INP_LEFT) ) {
+    } else if (bsgl->Control_IsPassing(INP_LEFT)) {
         spineboy->SetFlip(true, false);
-        if( 0 != strcmp(spineboy->GetCurrentAnimation(0), "walk") ) {
+        if (0 != strcmp(spineboy->GetCurrentAnimation(0), "walk")) {
             spineboy->SetAnimation(0, "walk", true);
         }
-    }else if( bsgl->Control_IsPassing(INP_RIGHT) ) {
+    } else if (bsgl->Control_IsPassing(INP_RIGHT)) {
         spineboy->SetFlip(false, false);
-        if( 0 != strcmp(spineboy->GetCurrentAnimation(0), "walk") ) {
+        if (0 != strcmp(spineboy->GetCurrentAnimation(0), "walk")) {
             spineboy->SetAnimation(0, "walk", true);
         }
-    }else if( 0 != strcmp(spineboy->GetCurrentAnimation(0), "idle")
-           && 0 != strcmp(spineboy->GetCurrentAnimation(0), "jump") ) {
+    } else if (0 != strcmp(spineboy->GetCurrentAnimation(0), "idle")
+           && 0 != strcmp(spineboy->GetCurrentAnimation(0), "jump")) {
         spineboy->SetAnimation(0, "idle", true);
     }
 
@@ -134,7 +134,7 @@ bool LogicFunc() {
 
     // Redraw the info text a few times a second (for the FPS readout)
     text_dt += dt;
-    if( text_dt >= 0.25f ) {
+    if (text_dt >= 0.25f) {
         text_dt = 0.0f;
         UpdateText();
     }
@@ -150,7 +150,7 @@ bool RenderFunc() {
 
     spineboy->Render();
 
-    if( text_spr ) {
+    if (text_spr) {
         text_spr->Render(7, 7);
     }
 
@@ -170,10 +170,10 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, SCREEN_WIDTH);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, SCREEN_HEIGHT);
 
-    if( bsgl->System_Initiate() ) {
+    if (bsgl->System_Initiate()) {
         // Load the spineboy data exported from Spine 4.2
         spineboy = new bsglSpine();
-        if( !spineboy->Load("spineboy-pro.json", "spineboy.atlas") ) {
+        if (!spineboy->Load("spineboy-pro.json", "spineboy.atlas")) {
             bsgl->System_Log("Error: can't load the spineboy data "
                              "(spineboy-pro.json / spineboy.atlas / spineboy.bmp)");
             delete spineboy;
@@ -213,11 +213,11 @@ void bsgl_main() {
         spineboy->SetCompleteCallback(OnSpineComplete);
 
         // Set up the info text display
-        if( FontFileExists() ) {
+        if (FontFileExists()) {
             font = new bsglFont(FONT_FILE, 14);
             text_tex = bsgl->Texture_Create(560, 64);
             text_spr = new bsglSprite(text_tex, 0, 0, 560, 64);
-        }else {
+        } else {
             bsgl->System_Log("Warning: %s not found, no on-screen text.", FONT_FILE);
         }
 
@@ -227,13 +227,13 @@ void bsgl_main() {
         // Delete created objects and free loaded resources
         delete font;
         delete text_spr;
-        if( text_tex ) {
+        if (text_tex) {
             bsgl->Texture_Free(text_tex);
         }
         delete spineboy; // also frees the atlas textures
 
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 

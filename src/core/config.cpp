@@ -13,7 +13,7 @@ using namespace tinyxml2;
 void CALL BSGL_Impl::Config_SetInt(const char* section, const char* option, int value) {
     char buf[256];
 
-    if( !szCfgFile[0] ) {
+    if (!szCfgFile[0]) {
         _PostError("The config file's path is unspecified.");
         return;
     }
@@ -22,17 +22,17 @@ void CALL BSGL_Impl::Config_SetInt(const char* section, const char* option, int 
     config_doc.LoadFile(szCfgFile);
 
     XMLElement* section_node = config_doc.FirstChildElement(section);
-    if( 0 == section_node ) {
+    if (nullptr == section_node) {
         section_node = config_doc.NewElement(section);
-        if( 0 == config_doc.InsertEndChild(section_node) ) {
+        if (nullptr == config_doc.InsertEndChild(section_node)) {
             _PostError("Can't insert a section node.");
         }
     }
 
     XMLElement* option_node = section_node->FirstChildElement(option);
-    if( 0 == option_node ) {
+    if (nullptr == option_node) {
         option_node = config_doc.NewElement(option);
-        if( 0 == section_node->InsertEndChild(option_node) ) {
+        if (nullptr == section_node->InsertEndChild(option_node)) {
             _PostError("Can't insert a option node.");
         }
     }
@@ -44,7 +44,7 @@ void CALL BSGL_Impl::Config_SetInt(const char* section, const char* option, int 
 }
 
 int CALL BSGL_Impl::Config_GetInt(const char* section, const char* option, int def_val) {
-    if( !szCfgFile[0] ) {
+    if (!szCfgFile[0]) {
         return def_val;
     }
 
@@ -52,11 +52,11 @@ int CALL BSGL_Impl::Config_GetInt(const char* section, const char* option, int d
     config_doc.LoadFile(szCfgFile);
 
     XMLElement* section_node = config_doc.FirstChildElement(section);
-    if( section_node != 0 ) {
+    if (section_node != nullptr) {
         XMLElement* option_node = section_node->FirstChildElement(option);
-        if( option_node != 0 ) {
+        if (option_node != nullptr) {
             char const* text = option_node->GetText();
-            if( text != 0 ) {
+            if (text != nullptr) {
                 return atoi(text);
             }
         }
@@ -68,7 +68,7 @@ int CALL BSGL_Impl::Config_GetInt(const char* section, const char* option, int d
 void CALL BSGL_Impl::Config_SetFloat(const char* section, const char* option, float value) {
     char buf[256];
 
-    if( !szCfgFile[0] ) {
+    if (!szCfgFile[0]) {
         _PostError("The config file's path is unspecified.");
         return;
     }
@@ -77,17 +77,17 @@ void CALL BSGL_Impl::Config_SetFloat(const char* section, const char* option, fl
     config_doc.LoadFile(szCfgFile);
 
     XMLElement* section_node = config_doc.FirstChildElement(section);
-    if( 0 == section_node ) {
+    if (nullptr == section_node) {
         section_node = config_doc.NewElement(section);
-        if( 0 == config_doc.InsertEndChild(section_node) ) {
+        if (nullptr == config_doc.InsertEndChild(section_node)) {
             _PostError("Can't insert a section node.");
         }
     }
 
     XMLElement* option_node = section_node->FirstChildElement(option);
-    if( 0 == option_node ) {
+    if (nullptr == option_node) {
         option_node = config_doc.NewElement(option);
-        if( 0 == section_node->InsertEndChild(option_node) ) {
+        if (nullptr == section_node->InsertEndChild(option_node)) {
             _PostError("Can't insert a option node.");
         }
     }
@@ -99,7 +99,7 @@ void CALL BSGL_Impl::Config_SetFloat(const char* section, const char* option, fl
 }
 
 float CALL BSGL_Impl::Config_GetFloat(const char* section, const char* option, float def_val) {
-    if( !szCfgFile[0] ) {
+    if (!szCfgFile[0]) {
         return def_val;
     }
 
@@ -107,11 +107,11 @@ float CALL BSGL_Impl::Config_GetFloat(const char* section, const char* option, f
     config_doc.LoadFile(szCfgFile);
 
     XMLElement* section_node = config_doc.FirstChildElement(section);
-    if( section_node != 0 ) {
+    if (section_node != nullptr) {
         XMLElement* option_node = section_node->FirstChildElement(option);
-        if( option_node != 0 ) {
+        if (option_node != nullptr) {
             char const* text = option_node->GetText();
-            if( text != 0 ) {
+            if (text != nullptr) {
                 return (float)atof(text);
             }
         }
@@ -121,7 +121,7 @@ float CALL BSGL_Impl::Config_GetFloat(const char* section, const char* option, f
 }
 
 void CALL BSGL_Impl::Config_SetString(const char* section, const char* option, const char* value) {
-    if( !szCfgFile[0] ) {
+    if (!szCfgFile[0]) {
         _PostError("The config file's path is unspecified.");
         return;
     }
@@ -130,17 +130,17 @@ void CALL BSGL_Impl::Config_SetString(const char* section, const char* option, c
     config_doc.LoadFile(szCfgFile);
 
     XMLElement* section_node = config_doc.FirstChildElement(section);
-    if( 0 == section_node ) {
+    if (nullptr == section_node) {
         section_node = config_doc.NewElement(section);
-        if( 0 == config_doc.InsertEndChild(section_node) ) {
+        if (nullptr == config_doc.InsertEndChild(section_node)) {
             _PostError("Can't insert a section node.");
         }
     }
 
     XMLElement* option_node = section_node->FirstChildElement(option);
-    if( 0 == option_node ) {
+    if (nullptr == option_node) {
         option_node = config_doc.NewElement(option);
-        if( 0 == section_node->InsertEndChild(option_node) ) {
+        if (nullptr == section_node->InsertEndChild(option_node)) {
             _PostError("Can't insert a option node.");
         }
     }
@@ -151,7 +151,7 @@ void CALL BSGL_Impl::Config_SetString(const char* section, const char* option, c
 }
 
 char* CALL BSGL_Impl::Config_GetString(const char* section, const char* option, const char* def_val) {
-    if( !szCfgFile[0] ) {
+    if (!szCfgFile[0]) {
         strcpy(szCfgString, def_val);
         return szCfgString;
     }
@@ -160,11 +160,11 @@ char* CALL BSGL_Impl::Config_GetString(const char* section, const char* option, 
     config_doc.LoadFile(szCfgFile);
 
     XMLElement* section_node = config_doc.FirstChildElement(section);
-    if( section_node != 0 ) {
+    if (section_node != nullptr) {
         XMLElement* option_node = section_node->FirstChildElement(option);
-        if( option_node != 0 ) {
+        if (option_node != nullptr) {
             char const* text = option_node->GetText();
-            if( text != 0 ) {
+            if (text != nullptr) {
                 strcpy(szCfgString, text);
                 return szCfgString;
             }

@@ -25,19 +25,19 @@ extern void bsgl_main();
 bool isRunning = false;
 
 int         nRef = 0;
-BSGL_Impl*   pBSGL = 0;
+BSGL_Impl*   pBSGL = nullptr;
 static bool  bInit = false;
 
 BSGL* CALL bsglCreate(int ver) {
-    if( BSGL_VERSION == ver ) {
+    if (BSGL_VERSION == ver) {
         return (BSGL*)BSGL_Impl::_Interface_Get();
     } else {
-        return 0;
+        return nullptr;
     }
 }
 
 BSGL_Impl* BSGL_Impl::_Interface_Get() {
-    if( 0 == pBSGL ) {
+    if (nullptr == pBSGL) {
         pBSGL = new BSGL_Impl();
     }
     ++nRef;
@@ -46,9 +46,9 @@ BSGL_Impl* BSGL_Impl::_Interface_Get() {
 
 void CALL BSGL_Impl::Release() {
     --nRef;
-    if( 0 == nRef) {
+    if (0 == nRef) {
         delete pBSGL;
-        pBSGL = 0;
+        pBSGL = nullptr;
     }
 }
 
@@ -60,12 +60,12 @@ bool CALL BSGL_Impl::System_Initiate() {
     _LoadConfig("config.xml");
 
     Uint32 flags = SDL_WINDOW_OPENGL;
-    if( !bWindowed ) {
+    if (!bWindowed) {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
     window = SDL_CreateWindow(szTitle[0] ? szTitle : "BSGL GAME",
                               nScreenWidth, nScreenHeight, flags);
-    if( 0 == window ) {
+    if (nullptr == window) {
         _PostError("Can't create the window: %s", SDL_GetError());
         System_Shutdown();
         return false;
@@ -73,7 +73,7 @@ bool CALL BSGL_Impl::System_Initiate() {
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     gl_context = SDL_GL_CreateContext(window);
-    if( 0 == gl_context ) {
+    if (nullptr == gl_context) {
         _PostError("Can't create the OpenGL context: %s", SDL_GetError());
         System_Shutdown();
         return false;
@@ -84,7 +84,7 @@ bool CALL BSGL_Impl::System_Initiate() {
     _InitOGL();
     _Resize(nScreenWidth, nScreenHeight);
 
-    if( !_GfxInit() ) {
+    if (!_GfxInit()) {
         _PostError("Can't initialize OpenGL.");
         System_Shutdown();
         return false;
@@ -101,13 +101,13 @@ void CALL BSGL_Impl::System_Shutdown() {
     System_Log("\nFinishing...");
     _GfxDone();
 
-    if( gl_context ) {
+    if (gl_context) {
         SDL_GL_DestroyContext(gl_context);
-        gl_context = 0;
+        gl_context = nullptr;
     }
-    if( window ) {
+    if (window) {
         SDL_DestroyWindow(window);
-        window = 0;
+        window = nullptr;
     }
 
     System_Log("The End.");
@@ -115,7 +115,7 @@ void CALL BSGL_Impl::System_Shutdown() {
 
 static void _PumpEvents() {
     SDL_Event event;
-    while( SDL_PollEvent(&event) ) {
+    while (SDL_PollEvent(&event)) {
         switch( event.type ) {
             case SDL_EVENT_QUIT:
                 isRunning = false;
@@ -137,42 +137,42 @@ bool CALL BSGL_Impl::System_Start() {
     float render_dt = 0.0f;
     unsigned int fps = 0;
 
-    while( isRunning ) {
+    while (isRunning) {
         _PumpEvents();
 
         time = (float)SDL_GetPerformanceCounter() / freq;
         float _t = time - old_time;
         old_time = time;
         fTime += _t;
-        if( !bActive ) {
+        if (!bActive) {
             old_logic_time += _t;
             old_render_time += _t;
             SDL_DelayNS(1000);
             continue;
         }
 
-        if( ( 0 == nLFPS )
-         || ( (time-old_logic_time) >= (1.0f/nLFPS) ) ) {
+        if ((0 == nLFPS)
+         || ((time-old_logic_time) >= (1.0f/nLFPS))) {
             fDeltaTime = logic_dt;
-            if( fpLogicFunc != 0 ) {
-                if( fpLogicFunc() ) {
+            if (fpLogicFunc != nullptr) {
+                if (fpLogicFunc()) {
                     break;
                 }
             }
             //fLogicDeltaTime
             logic_dt = ( time - old_logic_time );
-            if( nLFPS != 0 ) {
+            if (nLFPS != 0) {
                 old_logic_time += (1.0f/nLFPS);
-            }else {
+            } else {
                 old_logic_time = time;
             }
         }
 
-        if( ( 0 == nRFPS )
-         || ( (time-old_render_time) >= (1.0f/nRFPS) ) ) {
+        if ((0 == nRFPS)
+         || ((time-old_render_time) >= (1.0f/nRFPS))) {
             fDeltaTime = render_dt;
-            if( fpRenderFunc != 0 ) {
-                if( fpRenderFunc() ) {
+            if (fpRenderFunc != nullptr) {
+                if (fpRenderFunc()) {
                     break;
                 }
                 ++fps;
@@ -181,14 +181,14 @@ bool CALL BSGL_Impl::System_Start() {
 
             //fRenderDeltaTime
             render_dt = ( time - old_render_time );
-            if( nRFPS != 0 ) {
+            if (nRFPS != 0) {
                 old_render_time += (1.0f/nRFPS);
-            }else {
+            } else {
                 old_render_time = time;
             }
         }
 
-        if( time-time4fps >= 1.0f ) {
+        if (time-time4fps >= 1.0f) {
             //System_Log("fps: %u\ntime: %f", fps, Timer_GetTime());
             nFPS = fps;
             fps = 0;
@@ -274,21 +274,21 @@ int CALL BSGL_Impl::System_GetStateInt(bsglIntState state) {
 void CALL BSGL_Impl::System_SetStateString(bsglStringState state, const char* value) {
     switch( state ) {
         case BSGL_TITLE:
-            if( value != 0 ) {
+            if (value != nullptr) {
                 strcpy(szTitle, value);
-            }else {
+            } else {
                 szTitle[0] = (char)0;
             }
             break;
         case BSGL_CFGFILE:
-            if( value != 0 ) {
+            if (value != nullptr) {
                 strcpy(szCfgFile, value);
-            }else {
+            } else {
                 szCfgFile[0] = (char)0;
             }
             break;
         case BSGL_LOGFILE:
-            if( value != 0 ) {
+            if (value != nullptr) {
                 FILE* file = fopen(value, "a");
                 if (file) {
                     fclose(file);
@@ -296,7 +296,7 @@ void CALL BSGL_Impl::System_SetStateString(bsglStringState state, const char* va
                 } else {
                     szLogFile[0] = (char)0;
                 }
-            }else {
+            } else {
                 szLogFile[0] = (char)0;
             }
             break;
@@ -312,7 +312,7 @@ char* CALL BSGL_Impl::System_GetErrorMessage() {
 void CALL BSGL_Impl::System_Log(const char *szFormat, ...) {
     va_list vl;
 
-    if(!szLogFile[0]) {
+    if (!szLogFile[0]) {
         return;
     }
 
@@ -349,24 +349,24 @@ BSGL_Impl::BSGL_Impl() {
     bActive = true;
     nLFPS = 60;
     nRFPS = 0;
-    fpLogicFunc     = 0;
-    fpRenderFunc    = 0;
+    fpLogicFunc     = nullptr;
+    fpRenderFunc    = nullptr;
     fTime = 0.0f;
     fDeltaTime = 0.0f;
     nFPS = 0;
     nPolyMode = 0;
-    window = 0;
-    gl_context = 0;
-    textures = 0;
-    indexes = 0;
-    VertArray = 0;
+    window = nullptr;
+    gl_context = nullptr;
+    textures = nullptr;
+    indexes = nullptr;
+    VertArray = nullptr;
 
     this->_key_buf = new unsigned int[_KEY_BUF_SIZE];
     memset(_key_buf, 0, _KEY_BUF_SIZE*sizeof(unsigned int));
 }
 
 void CALL BSGL_Impl::_LoadConfig(char const* filename) {
-    if( !filename[0] ) {
+    if (!filename[0]) {
         return;
     }
     System_SetStateString(BSGL_CFGFILE, filename);
@@ -401,7 +401,7 @@ int main(int argc, char** argv) {
     // Resolve relative paths against the executable's directory, so
     // assets shipped next to the binary are found from any working
     // directory the process happens to be launched from.
-    if( const char* base = SDL_GetBasePath() ) {
+    if (const char* base = SDL_GetBasePath()) {
 #ifdef _WIN32
         _chdir(base);
 #else
@@ -409,7 +409,7 @@ int main(int argc, char** argv) {
 #endif
     }
 
-    if( !SDL_Init(SDL_INIT_VIDEO) ) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }

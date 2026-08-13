@@ -53,20 +53,20 @@ void CALL BSGL_Impl::Gfx_EndScene() {
 }
 
 void CALL BSGL_Impl::Gfx_RenderTriple(const bsglTriple* triple) {
-    if( (CurPrimType != BSGLPRIM_TRIPLES)
+    if ((CurPrimType != BSGLPRIM_TRIPLES)
     ||  (nPrim >= VERTEX_BUFFER_SIZE/BSGLPRIM_TRIPLES)
     ||  (CurTexture != triple->tex)
-    ||  (CurBlendMode != triple->blend) ) {
+    ||  (CurBlendMode != triple->blend)) {
         _render_batch();
 
         CurPrimType = BSGLPRIM_TRIPLES;
-        if( CurBlendMode != triple->blend ) {
+        if (CurBlendMode != triple->blend) {
             _SetBlendMode(triple->blend);
         }
-        if( CurTexture != triple->tex ) {
-            if( triple->tex ) {
+        if (CurTexture != triple->tex) {
+            if (triple->tex) {
                 glBindTexture(GL_TEXTURE_2D, *(GLuint*)triple->tex);
-            }else {
+            } else {
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
             CurTexture = triple->tex;
@@ -77,20 +77,20 @@ void CALL BSGL_Impl::Gfx_RenderTriple(const bsglTriple* triple) {
 }
 
 void CALL BSGL_Impl::Gfx_RenderQuad(const bsglQuad* quad) {
-    if( (CurPrimType != BSGLPRIM_QUADS)
+    if ((CurPrimType != BSGLPRIM_QUADS)
     ||  (nPrim >= VERTEX_BUFFER_SIZE/BSGLPRIM_QUADS)
     ||  (CurTexture != quad->tex)
-    ||  (CurBlendMode != quad->blend) ) {
+    ||  (CurBlendMode != quad->blend)) {
         _render_batch();
 
         CurPrimType = BSGLPRIM_QUADS;
-        if( CurBlendMode != quad->blend ) {
+        if (CurBlendMode != quad->blend) {
             _SetBlendMode(quad->blend);
         }
-        if( CurTexture != quad->tex ) {
-            if( quad->tex ) {
+        if (CurTexture != quad->tex) {
+            if (quad->tex) {
                 glBindTexture(GL_TEXTURE_2D, *(GLuint*)quad->tex);
-            }else {
+            } else {
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
             CurTexture = quad->tex;
@@ -101,22 +101,22 @@ void CALL BSGL_Impl::Gfx_RenderQuad(const bsglQuad* quad) {
 }
 
 bsglVertex* CALL BSGL_Impl::Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend, int* max_prim) {
-    if( VertArray ) {
+    if (VertArray) {
         _render_batch();
 
         CurPrimType = prim_type;
-        if( CurBlendMode != blend ) {
+        if (CurBlendMode != blend) {
             _SetBlendMode(blend);
         }
-        if( CurTexture != tex ) {
+        if (CurTexture != tex) {
             glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
             CurTexture = tex;
         }
 
         *max_prim = VERTEX_BUFFER_SIZE / prim_type;
         return VertArray;
-    }else {
-        return 0;
+    } else {
+        return nullptr;
     }
 }
 
@@ -135,7 +135,7 @@ HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tw, th,
-            0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+            0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -153,9 +153,9 @@ HTEXTURE CALL BSGL_Impl::Texture_Create(int width, int height) {
 
 HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMipmap) {
     GLuint* texture = new GLuint;
-    struct _BMP* texture_image = 0;
+    struct _BMP* texture_image = nullptr;
     *texture = 0;
-    if( (texture_image=_LoadBMP(filename)) ) {
+    if ((texture_image=_LoadBMP(filename))) {
         glGenTextures(1, texture);
         glBindTexture(GL_TEXTURE_2D, *texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_image->tw,
@@ -168,7 +168,7 @@ HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMi
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    if( !texture_image ) {
+    if (!texture_image) {
         _PostError("Can't load the texture file \"%s\".", filename);
         return (HTEXTURE)0;
     }
@@ -187,13 +187,13 @@ HTEXTURE CALL BSGL_Impl::Texture_Load(const char* filename, DWORD size, bool bMi
 
 void CALL BSGL_Impl::Texture_Free(HTEXTURE tex) {
     TextureList* texItem = textures;
-    TextureList* texPrev = 0;
+    TextureList* texPrev = nullptr;
 
-    while( texItem ) {
-        if( texItem->tex == tex ) {
-            if( texPrev ) {
+    while (texItem) {
+        if (texItem->tex == tex) {
+            if (texPrev) {
                 texPrev->next = texItem->next;
-            }else {
+            } else {
                 textures = texItem->next;
             }
             delete texItem;
@@ -210,9 +210,9 @@ void CALL BSGL_Impl::Texture_Free(HTEXTURE tex) {
 int CALL BSGL_Impl::Texture_GetWidth(HTEXTURE tex, bool bOriginal) {
     TextureList* texItem = textures;
 
-    if( bOriginal ) {
-        while( texItem ) {
-            if( texItem->tex == tex ) {
+    if (bOriginal) {
+        while (texItem) {
+            if (texItem->tex == tex) {
                 return texItem->width;
             }
             texItem = texItem->next;
@@ -229,9 +229,9 @@ int CALL BSGL_Impl::Texture_GetWidth(HTEXTURE tex, bool bOriginal) {
 int CALL BSGL_Impl::Texture_GetHeight(HTEXTURE tex, bool bOriginal) {
     TextureList* texItem = textures;
 
-    if( bOriginal ) {
-        while( texItem ) {
-            if( texItem->tex == tex ) {
+    if (bOriginal) {
+        while (texItem) {
+            if (texItem->tex == tex) {
                 return texItem->height;
             }
             texItem = texItem->next;
@@ -275,18 +275,18 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
 
     glBindTexture(GL_TEXTURE_2D, *(GLuint*)tex);
 
-    if( 0 == width ) {
+    if (0 == width) {
         _x = 0;
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &_w);
-    }else {
+    } else {
         _x = x;
         _w = width;
     }
 
-    if( 0 == height ) {
+    if (0 == height) {
         _y = 0;
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &_h);
-    }else {
+    } else {
         _y = y;
         _h = height;
     }
@@ -295,16 +295,16 @@ void CALL BSGL_Impl::Texture_Update(HTEXTURE tex, DWORD* data, int x, int y, int
 }
 
 void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//remember to test w and h are negative
-    if( 0 == w || 0== h ) {
+    if (0 == w || 0== h) {
         x = 0;
         y = 0;
         w = nScreenWidth;
         h = nScreenHeight;
-    }else {
-        if( x < 0 ) { w+=x; x=0; }
-        if( y < 0 ) { h+=y; y=0; }
-        if( x+w > nScreenWidth ) w = nScreenWidth - x;
-        if( y+h > nScreenHeight ) h = nScreenHeight - y;
+    } else {
+        if (x < 0) { w+=x; x=0; }
+        if (y < 0) { h+=y; y=0; }
+        if (x+w > nScreenWidth) w = nScreenWidth - x;
+        if (y+h > nScreenHeight) h = nScreenHeight - y;
     }
 
     _render_batch();
@@ -320,9 +320,9 @@ void CALL BSGL_Impl::Gfx_SetClipping(int x, int y, int w, int h) {//remember to 
 void CALL BSGL_Impl::Gfx_SetTransform(float x, float y, float dx, float dy, float rot, float hscale, float vscale) {
     _render_batch();
     glMatrixMode(GL_MODELVIEW);
-    if( 0.0f == hscale || 0.0f == vscale ) {
+    if (0.0f == hscale || 0.0f == vscale) {
         glLoadIdentity();
-    }else {
+    } else {
         glLoadIdentity();
         glTranslatef(x+dx, y+dy, 0.0f);
         glRotatef(rot, 0.0f, 0.0f, -1.0f);
@@ -345,12 +345,12 @@ bool BSGL_Impl::_GfxInit() {
     }
 
     VertArray = new bsglVertex[VERTEX_BUFFER_SIZE];
-    if( 0 == VertArray ) {
+    if (nullptr == VertArray) {
         _PostError("Can't create vertex buffer");
         return false;
     }
 
-    textures = 0;
+    textures = nullptr;
 
     nPrim = 0;
     CurPrimType = BSGLPRIM_QUADS;
@@ -362,16 +362,16 @@ bool BSGL_Impl::_GfxInit() {
 
 void BSGL_Impl::_GfxDone() {
     delete[] VertArray;
-    VertArray = 0;
+    VertArray = nullptr;
     delete[] indexes;
-    indexes = 0;
-    while(textures) {
+    indexes = nullptr;
+    while (textures) {
         Texture_Free(textures->tex);
     }
 }
 
 void BSGL_Impl::_render_batch(bool bEndScene) {
-    if( nPrim != 0 ) {
+    if (nPrim != 0) {
         switch(CurPrimType) {
         case BSGLPRIM_LINES:
             break;
@@ -391,26 +391,26 @@ void BSGL_Impl::_render_batch(bool bEndScene) {
 }
 
 void BSGL_Impl::_SetBlendMode(int blend) {
-    if( ( blend & BLEND_ALPHABLEND ) != ( CurBlendMode & BLEND_ALPHABLEND ) ) {
-        if( blend & BLEND_ALPHABLEND ) {
+    if ((blend & BLEND_ALPHABLEND) != (CurBlendMode & BLEND_ALPHABLEND)) {
+        if (blend & BLEND_ALPHABLEND) {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }else {
+        } else {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         }
     }
 
-    if( ( blend & BLEND_ZWRITE ) != ( CurBlendMode & BLEND_ZWRITE ) ) {
-        if( blend & BLEND_ZWRITE ) {
+    if ((blend & BLEND_ZWRITE) != (CurBlendMode & BLEND_ZWRITE)) {
+        if (blend & BLEND_ZWRITE) {
             glEnable(GL_DEPTH_TEST);
-        }else {
+        } else {
             glDisable(GL_DEPTH_TEST);
         }
     }
 
-    if( ( blend & BLEND_COLORADD ) != ( CurBlendMode & BLEND_COLORADD ) ) {
-        if( blend & BLEND_COLORADD ) {
+    if ((blend & BLEND_COLORADD) != (CurBlendMode & BLEND_COLORADD)) {
+        if (blend & BLEND_COLORADD) {
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-        }else {
+        } else {
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         }
     }
@@ -426,7 +426,7 @@ void _InitOGL() {
 }
 
 void _Resize(int width, int height) {
-    if( height == 0 ) {
+    if (height == 0) {
         height = 1;
     }
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
@@ -487,7 +487,7 @@ struct _BMP* _LoadBMP(char const* filename) {
     FILE* file = fopen(filename, "rb");
     struct _BMP* bmp;
     if (!file) {
-        return NULL;
+        return nullptr;
     }
     bmp = (struct _BMP*)malloc(sizeof(struct _BMP));
     fread(&header, sizeof(header), 1, file);

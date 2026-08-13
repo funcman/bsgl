@@ -97,47 +97,47 @@ void CALL BSGL_Impl::Control_GetState() {
 
     if (buttons & SDL_BUTTON_LMASK) {
         _key_buf[INP_MOUSEL] = _key_buf[INP_MOUSEL] << 1 | 1;
-    }else {
+    } else {
         _key_buf[INP_MOUSEL] = _key_buf[INP_MOUSEL] << 1;
     }
 
     if (buttons & SDL_BUTTON_RMASK) {
         _key_buf[INP_MOUSER] = _key_buf[INP_MOUSER] << 1 | 1;
-    }else {
+    } else {
         _key_buf[INP_MOUSER] = _key_buf[INP_MOUSER] << 1;
     }
 
-    bool const* keys = SDL_GetKeyboardState(0);
+    bool const* keys = SDL_GetKeyboardState(nullptr);
     int const num_keys = sizeof(_key_map)/sizeof(_key_map[0]);
     for (int i=0; i<num_keys; ++i) {
         if (keys[_key_map[i].scancode]) {
             _key_buf[_key_map[i].inp] = _key_buf[_key_map[i].inp] << 1 | 1;
-        }else {
+        } else {
             _key_buf[_key_map[i].inp] = _key_buf[_key_map[i].inp] << 1;
         }
     }
 }
 
 bool CALL BSGL_Impl::Control_IsDown(int key) {
-    if( (_key_buf[key]&_KEY_BIT_MASK) == _KEY_DOWN ) {
+    if ((_key_buf[key]&_KEY_BIT_MASK) == _KEY_DOWN) {
         return true;
-    }else {
+    } else {
         return false;
     }
 }
 
 bool CALL BSGL_Impl::Control_IsPassing(int key) {
-    if( (_key_buf[key]&_KEY_BIT_MASK) == _KEY_PRESSING ) {
+    if ((_key_buf[key]&_KEY_BIT_MASK) == _KEY_PRESSING) {
         return true;
-    }else {
+    } else {
         return false;
     }
 }
 
 bool CALL BSGL_Impl::Control_IsUp(int key) {
-    if( (_key_buf[key]&_KEY_BIT_MASK) == _KEY_UP ) {
+    if ((_key_buf[key]&_KEY_BIT_MASK) == _KEY_UP) {
         return true;
-    }else {
+    } else {
         return false;
     }
 }

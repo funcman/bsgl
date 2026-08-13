@@ -17,7 +17,7 @@
 // Instead you may call bsglCreate() every time you need access
 // to the interface. Just be sure to have a corresponding
 // bsgl->Release() for each call to bsglCreate().
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 // This function will be called by BSGL once per logic frame.
 // Put your game loop code here. In this example we
@@ -29,7 +29,7 @@ bool LogicFunc() {
 
     // By returning "true" we tell BSGL
     // to stop running the application.
-    if( bsgl->Control_IsDown(INP_ESC) ) {
+    if (bsgl->Control_IsDown(INP_ESC)) {
         return true;
     }
 
@@ -55,7 +55,7 @@ void bsgl_main() {
     // If something goes wrong, "false" is returned
     // and a more specific description of what has
     // happened can be read with System_GetErrorMessage().
-    if( bsgl->System_Initiate() ) {
+    if (bsgl->System_Initiate()) {
         // Starts running LogicFunc().
         // Note that the execution "stops" here
         // until "true" is returned from LogicFunc().
@@ -65,7 +65,7 @@ void bsgl_main() {
         // has closed the window by other means.
         // Free all allocated resources.
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 

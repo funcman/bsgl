@@ -37,10 +37,10 @@ bsglAnimation::bsglAnimation(const bsglAnimation & anim)
 void bsglAnimation::Play() {
     bPlaying =true;
     fSinceLastFrame = -1.0f;
-    if( Mode & BSGLANIM_REV ) {
+    if (Mode & BSGLANIM_REV) {
         nDelta = -1;
         SetFrame(nFrames-1);
-    }else {
+    } else {
         nDelta = 1;
         SetFrame(0);
     }
@@ -55,20 +55,20 @@ void bsglAnimation:: Resume() {
 }
 
 void bsglAnimation::Update(float fDeltaTime) {
-    if( !bPlaying ) {
+    if (!bPlaying) {
         return;
     }
 
-    if( fSinceLastFrame == -1.0f ) {
+    if (fSinceLastFrame == -1.0f) {
         fSinceLastFrame = 0.0f;
-    }else {
+    } else {
         fSinceLastFrame += fDeltaTime;
     }
 
-    while( fSinceLastFrame >= fSpeed ) {
+    while (fSinceLastFrame >= fSpeed) {
         fSinceLastFrame -= fSpeed;
 
-        if(nCurFrame + nDelta == nFrames) {
+        if (nCurFrame + nDelta == nFrames) {
             switch(Mode) {
             case BSGLANIM_FWD:
             case BSGLANIM_REV | BSGLANIM_PINGPONG:
@@ -81,7 +81,7 @@ void bsglAnimation::Update(float fDeltaTime) {
                 nDelta = -nDelta;
                 break;
             }
-        }else if( nCurFrame + nDelta < 0 ) {
+        } else if (nCurFrame + nDelta < 0) {
             switch(Mode) {
             case BSGLANIM_REV:
             case BSGLANIM_FWD | BSGLANIM_PINGPONG:
@@ -96,7 +96,7 @@ void bsglAnimation::Update(float fDeltaTime) {
             }
         }
 
-        if(bPlaying) {
+        if (bPlaying) {
             SetFrame(nCurFrame+nDelta);
         }
     }
@@ -119,10 +119,10 @@ void bsglAnimation::SetTextureRect(float x1, float y1, float x2, float y2) {
 void bsglAnimation::SetMode(int mode) {
     Mode = mode;
 
-    if( mode & BSGLANIM_REV ) {
+    if (mode & BSGLANIM_REV) {
         nDelta = -1;
         SetFrame(nFrames-1);
-    }else {
+    } else {
         nDelta = 1;
         SetFrame(0);
     }
@@ -138,7 +138,7 @@ void bsglAnimation::SetFrame(int n) {
     int ncols = int(orig_width) / int(width);
 
     n = n % nFrames;
-    if( n < 0 ) {
+    if (n < 0) {
         n = nFrames + n;
     }
     nCurFrame = n;
@@ -147,7 +147,7 @@ void bsglAnimation::SetFrame(int n) {
     ty1 = ty;
     tx1 = tx + n*width;
 
-    if( tx1 > orig_width-width ) {
+    if (tx1 > orig_width-width) {
         n -= int(orig_width-tx) / int(width);
         tx1 = width * (n%ncols);
         ty1 += height * (1 + n/ncols);

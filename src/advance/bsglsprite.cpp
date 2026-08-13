@@ -10,7 +10,7 @@
 #include <math.h>
 #include "bsglrect.h"
 
-BSGL *bsglSprite::bsgl=0;
+BSGL *bsglSprite::bsgl=nullptr;
 
 bsglSprite::bsglSprite(HTEXTURE tex, float x, float y, float w, float h) {
     float texx1, texy1, texx2, texy2;
@@ -22,10 +22,10 @@ bsglSprite::bsglSprite(HTEXTURE tex, float x, float y, float w, float h) {
     width   = w;
     height  = h;
 
-    if(tex)    {
+    if (tex) {
         tex_width   = (float)bsgl->Texture_GetWidth(tex);
         tex_height  = (float)bsgl->Texture_GetHeight(tex);
-    }else {
+    } else {
         tex_width   = 1.0f;
         tex_height  = 1.0f;
     }
@@ -85,7 +85,7 @@ void bsglSprite::RenderEx(float x, float y, float rot, float hscale, float vscal
     float tx1, ty1, tx2, ty2;
     float sint, cost;
 
-    if( 0.0f == vscale ) {
+    if (0.0f == vscale) {
         vscale = hscale;
     }
 
@@ -94,7 +94,7 @@ void bsglSprite::RenderEx(float x, float y, float rot, float hscale, float vscal
     tx2 = (width-hotX)*hscale;
     ty2 = (height-hotY)*vscale;
 
-    if( rot != 0.0f ) {
+    if (rot != 0.0f) {
         sint = sinf(rot);
         cost = cosf(rot);
         quad.v[0].x = tx1*cost - ty1*sint + x;
@@ -105,7 +105,7 @@ void bsglSprite::RenderEx(float x, float y, float rot, float hscale, float vscal
         quad.v[2].y = tx2*sint + ty2*cost + y;
         quad.v[3].x = tx1*cost - ty2*sint + x;
         quad.v[3].y = tx1*sint + ty2*cost + y;
-    }else {
+    } else {
         quad.v[0].x = tx1 + x; quad.v[0].y = ty1 + y;
         quad.v[1].x = tx2 + x; quad.v[1].y = ty1 + y;
         quad.v[2].x = tx2 + x; quad.v[2].y = ty2 + y;
@@ -139,15 +139,15 @@ void bsglSprite::SetTexture(HTEXTURE tex) {
 
     quad.tex = tex;
 
-    if( tex ) {
+    if (tex) {
         tw = (float)bsgl->Texture_GetWidth(tex);
         th = (float)bsgl->Texture_GetHeight(tex);
-    }else {
+    } else {
         tw = 1.0f;
         th = 1.0f;
     }
 
-    if( tw!=tex_width || th!=tex_height ) {
+    if (tw!=tex_width || th!=tex_height) {
         tx1 = quad.v[0].tx*tex_width;
         ty1 = quad.v[0].ty*tex_height;
         tx2 = quad.v[2].tx*tex_width;
@@ -173,7 +173,7 @@ void bsglSprite::SetTextureRect(float x, float y, float w, float h, bool adjSize
     tx = x;
     ty = y;
 
-    if( adjSize ) {
+    if (adjSize) {
         width   = w;
         height  = h;
     }
@@ -195,23 +195,23 @@ void bsglSprite::SetTextureRect(float x, float y, float w, float h, bool adjSize
 }
 
 void bsglSprite::SetColor(DWORD col, int i) {
-    if( -1 == i ) {
+    if (-1 == i) {
         quad.v[0].color =
         quad.v[1].color =
         quad.v[2].color =
         quad.v[3].color = col;
-    }else {
+    } else {
         quad.v[i].color = col;
     }
 }
 
 void bsglSprite::SetZ(float z, int i) {
-    if( -1 == i ) {
+    if (-1 == i) {
         quad.v[0].z =
         quad.v[1].z =
         quad.v[2].z =
         quad.v[3].z = z;
-    }else {
+    } else {
         quad.v[i].z = z;
     }
 }
@@ -228,15 +228,15 @@ void bsglSprite::SetHotSpot(float x, float y) {
 void bsglSprite::SetFlip(bool bX, bool bY, bool bHotSpot) {
     float tx, ty;
 
-    if( bHSFlip && bXFlip ) hotX = width - hotX;
-    if( bHSFlip && bYFlip ) hotY = height - hotY;
+    if (bHSFlip && bXFlip) hotX = width - hotX;
+    if (bHSFlip && bYFlip) hotY = height - hotY;
 
     bHSFlip = bHotSpot;
 
-    if( bHSFlip && bXFlip ) hotX = width - hotX;
-    if( bHSFlip && bYFlip ) hotY = height - hotY;
+    if (bHSFlip && bXFlip) hotX = width - hotX;
+    if (bHSFlip && bYFlip) hotY = height - hotY;
 
-    if( bX != bXFlip ) {
+    if (bX != bXFlip) {
         tx=quad.v[0].tx; quad.v[0].tx=quad.v[1].tx; quad.v[1].tx=tx;
         ty=quad.v[0].ty; quad.v[0].ty=quad.v[1].ty; quad.v[1].ty=ty;
         tx=quad.v[3].tx; quad.v[3].tx=quad.v[2].tx; quad.v[2].tx=tx;
@@ -245,7 +245,7 @@ void bsglSprite::SetFlip(bool bX, bool bY, bool bHotSpot) {
         bXFlip = !bXFlip;
     }
 
-    if( bY != bYFlip ) {
+    if (bY != bYFlip) {
         tx=quad.v[0].tx; quad.v[0].tx=quad.v[3].tx; quad.v[3].tx=tx;
         ty=quad.v[0].ty; quad.v[0].ty=quad.v[3].ty; quad.v[3].ty=ty;
         tx=quad.v[1].tx; quad.v[1].tx=quad.v[2].tx; quad.v[2].tx=tx;
@@ -312,7 +312,7 @@ bsglRect* bsglSprite::GetBoundingBoxEx(float x, float y, float rot, float vscale
     tx2 = (width-hotX) * hscale;
     ty2 = (height-hotY) * vscale;
 
-    if( rot != 0.0f ) {
+    if (rot != 0.0f) {
         cost = cosf(rot);
         sint = sinf(rot);
 
@@ -320,7 +320,7 @@ bsglRect* bsglSprite::GetBoundingBoxEx(float x, float y, float rot, float vscale
         rect->Encapsulate(tx2*cost - ty1*sint + x, tx2*sint + ty1*cost + y);
         rect->Encapsulate(tx2*cost - ty2*sint + x, tx2*sint + ty2*cost + y);
         rect->Encapsulate(tx1*cost - ty2*sint + x, tx1*sint + ty2*cost + y);
-    }else {
+    } else {
         rect->Encapsulate(tx1 + x, ty1 + y);
         rect->Encapsulate(tx2 + x, ty1 + y);
         rect->Encapsulate(tx2 + x, ty2 + y);

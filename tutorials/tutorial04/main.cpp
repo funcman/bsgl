@@ -24,14 +24,14 @@
 #include <stdio.h>
 #include <string.h>
 
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 static HTEXTURE    title_tex = 0;
 static HTEXTURE    fps_tex   = 0;
-static bsglSprite* title_spr = 0;
-static bsglSprite* fps_spr   = 0;
-static bsglFont*   font_big   = 0;
-static bsglFont*   font_small = 0;
+static bsglSprite* title_spr = nullptr;
+static bsglSprite* fps_spr   = nullptr;
+static bsglFont*   font_big   = nullptr;
+static bsglFont*   font_small = nullptr;
 
 static float fps_timer = 0.0f;
 
@@ -41,7 +41,7 @@ static const char* const FONT_FILE = "font.ttf";
 
 static bool FontFileExists() {
     FILE* f = fopen(FONT_FILE, "rb");
-    if( f ) {
+    if (f) {
         fclose(f);
         return true;
     }
@@ -72,14 +72,14 @@ bool LogicFunc() {
     float dt = bsgl->Timer_GetDelta();
 
     bsgl->Control_GetState();
-    if( bsgl->Control_IsDown(INP_ESC) ) {
+    if (bsgl->Control_IsDown(INP_ESC)) {
         return true;
     }
 
     // Redraw the FPS text twice a second. The texture has to be
     // cleared first, otherwise the new text blends over the old one.
     fps_timer += dt;
-    if( fps_timer >= 0.5f ) {
+    if (fps_timer >= 0.5f) {
         fps_timer = 0.0f;
         char buf[64];
         sprintf(buf, "FPS: %d", bsgl->Timer_GetFPS());
@@ -113,8 +113,8 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, 800);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, 600);
 
-    if( bsgl->System_Initiate() ) {
-        if( !FontFileExists() ) {
+    if (bsgl->System_Initiate()) {
+        if (!FontFileExists()) {
             bsgl->System_Log("Error: %s not found (should have been copied from tutorials/res)", FONT_FILE);
             bsgl->System_Shutdown();
             bsgl->Release();
@@ -149,7 +149,7 @@ void bsgl_main() {
         delete font_big;
 
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 

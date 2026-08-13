@@ -27,7 +27,7 @@
 #include <math.h>
 #include <string.h>
 
-BSGL* bsglSpine::bsgl = 0;
+BSGL* bsglSpine::bsgl = nullptr;
 
 // spine-cpp requires each integration to provide the default extension
 // (memory allocation / file reading through the C runtime)
@@ -46,16 +46,16 @@ public:
     void load(spine::AtlasPage& page, const spine::String& path) {
         HTEXTURE tex = bsgl->Texture_Load(path.buffer());
         page.texture = (void*)tex;
-        if( tex ) {
+        if (tex) {
             page.width  = bsgl->Texture_GetWidth(tex, true);
             page.height = bsgl->Texture_GetHeight(tex, true);
-        }else {
+        } else {
             bsgl->System_Log("bsglSpine: can't load atlas page \"%s\"", path.buffer());
         }
     }
 
     void unload(void* texture) {
-        if( texture ) {
+        if (texture) {
             bsgl->Texture_Free((HTEXTURE)texture);
         }
     }
@@ -74,12 +74,12 @@ public:
     void callback(spine::AnimationState* state, spine::EventType type,
                   spine::TrackEntry* entry, spine::Event* event) {
         (void)state;
-        if( spine::EventType_Event == type ) {
-            if( owner->eventCallback && event ) {
+        if (spine::EventType_Event == type) {
+            if (owner->eventCallback && event) {
                 owner->eventCallback(event, owner->eventUserdata);
             }
-        }else if( spine::EventType_Complete == type ) {
-            if( owner->completeCallback && entry ) {
+        } else if (spine::EventType_Complete == type) {
+            if (owner->completeCallback && entry) {
                 // loopCount is not exposed by spine-cpp 4.2, pass 0
                 owner->completeCallback(entry->getTrackIndex(), 0, owner->completeUserdata);
             }
@@ -94,17 +94,17 @@ private:
 // bsglSpine
 //=====================================================================
 bsglSpine::bsglSpine() {
-    if( !bsgl ) {
+    if (!bsgl) {
         bsgl = bsglCreate(BSGL_VERSION);
     }
 
-    atlas        = 0;
-    skeletonData = 0;
-    skeleton     = 0;
-    stateData    = 0;
-    state        = 0;
+    atlas        = nullptr;
+    skeletonData = nullptr;
+    skeleton     = nullptr;
+    stateData    = nullptr;
+    state        = nullptr;
     texLoader    = new BSGLTextureLoader(bsgl);
-    listener     = 0;
+    listener     = nullptr;
 
     posX = posY = 0.0f;
     rot         = 0.0f;
@@ -113,64 +113,64 @@ bsglSpine::bsglSpine() {
     color    = RGBA(0xFF, 0xFF, 0xFF, 0xFF);
     timeScale = 1.0f;
 
-    eventCallback      = 0;
-    eventUserdata      = 0;
-    completeCallback   = 0;
-    completeUserdata   = 0;
+    eventCallback      = nullptr;
+    eventUserdata      = nullptr;
+    completeCallback   = nullptr;
+    completeUserdata   = nullptr;
 }
 
 bsglSpine::~bsglSpine() {
-    if( state )        { delete state; }
-    if( stateData )    { delete stateData; }
-    if( skeleton )     { delete skeleton; }
-    if( skeletonData ) { delete skeletonData; }
-    if( atlas )        { delete atlas; } // also unloads the page textures
+    if (state)        { delete state; }
+    if (stateData)    { delete stateData; }
+    if (skeleton)     { delete skeleton; }
+    if (skeletonData) { delete skeletonData; }
+    if (atlas)        { delete atlas; } // also unloads the page textures
     delete texLoader;
-    if( listener )     { delete listener; }
+    if (listener)     { delete listener; }
 
-    if( bsgl ) {
+    if (bsgl) {
         bsgl->Release();
-        bsgl = 0;
+        bsgl = nullptr;
     }
 }
 
 bool bsglSpine::Load(const char* skeletonFile, const char* atlasFile) {
-    if( skeleton ) {
+    if (skeleton) {
         bsgl->System_Log("bsglSpine: already loaded");
         return false;
     }
 
     atlas = new spine::Atlas(atlasFile, texLoader);
-    if( atlas->getPages().size() == 0 ) {
+    if (atlas->getPages().size() == 0) {
         bsgl->System_Log("bsglSpine: can't load atlas \"%s\"", atlasFile);
         delete atlas;
-        atlas = 0;
+        atlas = nullptr;
         return false;
     }
 
     // The skeleton file may be JSON or binary (.skel)
     bool isBinary = false;
     const char* ext = strrchr(skeletonFile, '.');
-    if( ext && 0 == strcmp(ext, ".skel") ) {
+    if (ext && 0 == strcmp(ext, ".skel")) {
         isBinary = true;
     }
 
     spine::String error;
-    if( isBinary ) {
+    if (isBinary) {
         spine::SkeletonBinary binary(atlas);
         skeletonData = binary.readSkeletonDataFile(skeletonFile);
         error = binary.getError();
-    }else {
+    } else {
         spine::SkeletonJson json(atlas);
         skeletonData = json.readSkeletonDataFile(skeletonFile);
         error = json.getError();
     }
 
-    if( !skeletonData ) {
+    if (!skeletonData) {
         bsgl->System_Log("bsglSpine: can't load skeleton \"%s\": %s",
                          skeletonFile, error.isEmpty() ? "unknown error" : error.buffer());
         delete atlas;
-        atlas = 0;
+        atlas = nullptr;
         return false;
     }
 
@@ -192,39 +192,39 @@ bool bsglSpine::Load(const char* skeletonFile, const char* atlasFile) {
 // Animation control
 //---------------------------------------------------------------------
 void bsglSpine::SetAnimation(int trackIndex, const char* name, bool loop) {
-    if( state ) {
+    if (state) {
         state->setAnimation(trackIndex, name, loop);
     }
 }
 
 void bsglSpine::AddAnimation(int trackIndex, const char* name, bool loop, float delay) {
-    if( state ) {
+    if (state) {
         state->addAnimation(trackIndex, name, loop, delay);
     }
 }
 
 void bsglSpine::SetEmptyAnimation(int trackIndex, float mixDuration) {
-    if( state ) {
+    if (state) {
         state->setEmptyAnimation(trackIndex, mixDuration);
     }
 }
 
 void bsglSpine::ClearTrack(int trackIndex) {
-    if( state ) {
+    if (state) {
         state->clearTrack(trackIndex);
     }
 }
 
 void bsglSpine::ClearTracks() {
-    if( state ) {
+    if (state) {
         state->clearTracks();
     }
 }
 
 const char* bsglSpine::GetCurrentAnimation(int trackIndex) const {
-    if( state ) {
+    if (state) {
         spine::TrackEntry* entry = state->getCurrent(trackIndex);
-        if( entry && entry->getAnimation() ) {
+        if (entry && entry->getAnimation()) {
             return entry->getAnimation()->getName().buffer();
         }
     }
@@ -232,9 +232,9 @@ const char* bsglSpine::GetCurrentAnimation(int trackIndex) const {
 }
 
 bool bsglSpine::IsPlaying(int trackIndex) const {
-    if( state ) {
+    if (state) {
         spine::TrackEntry* entry = state->getCurrent(trackIndex);
-        if( entry ) {
+        if (entry) {
             return entry->getLoop() || entry->getTrackTime() < entry->getAnimationEnd();
         }
     }
@@ -250,13 +250,13 @@ float bsglSpine::GetTimeScale() const {
 }
 
 void bsglSpine::SetDefaultMix(float duration) {
-    if( stateData ) {
+    if (stateData) {
         stateData->setDefaultMix(duration);
     }
 }
 
 void bsglSpine::SetMix(const char* fromAnimation, const char* toAnimation, float duration) {
-    if( stateData ) {
+    if (stateData) {
         stateData->setMix(fromAnimation, toAnimation, duration);
     }
 }
@@ -285,7 +285,7 @@ float bsglSpine::GetRotation() const {
 void bsglSpine::SetScale(float sx, float sy) {
     scaleX = sx;
     scaleY = sy;
-    if( skeleton ) {
+    if (skeleton) {
         skeleton->setScaleX(scaleX * (bXFlip ? -1.0f : 1.0f));
         skeleton->setScaleY(scaleY * (bYFlip ? -1.0f : 1.0f));
     }
@@ -294,7 +294,7 @@ void bsglSpine::SetScale(float sx, float sy) {
 void bsglSpine::SetFlip(bool bX, bool bY) {
     bXFlip = bX;
     bYFlip = bY;
-    if( skeleton ) {
+    if (skeleton) {
         skeleton->setScaleX(scaleX * (bXFlip ? -1.0f : 1.0f));
         skeleton->setScaleY(scaleY * (bYFlip ? -1.0f : 1.0f));
     }
@@ -320,43 +320,43 @@ DWORD bsglSpine::GetColor() const {
 // Bones / slots / skins
 //---------------------------------------------------------------------
 spine::Bone* bsglSpine::FindBone(const char* name) {
-    return skeleton ? skeleton->findBone(name) : 0;
+    return skeleton ? skeleton->findBone(name) : nullptr;
 }
 
 void bsglSpine::GetBoneWorldPosition(const char* boneName, float* x, float* y) {
     spine::Bone* bone = FindBone(boneName);
-    if( bone ) {
+    if (bone) {
         WorldToScreen(bone->getWorldX(), bone->getWorldY(), x, y);
-    }else {
+    } else {
         *x = posX;
         *y = posY;
     }
 }
 
 void bsglSpine::SetAttachment(const char* slotName, const char* attachmentName) {
-    if( skeleton ) {
+    if (skeleton) {
         skeleton->setAttachment(slotName, attachmentName);
     }
 }
 
 void bsglSpine::SetSlotColor(const char* slotName, float r, float g, float b, float a) {
-    if( skeleton ) {
+    if (skeleton) {
         spine::Slot* slot = skeleton->findSlot(slotName);
-        if( slot ) {
+        if (slot) {
             slot->getColor().set(r, g, b, a);
         }
     }
 }
 
 void bsglSpine::SetSkin(const char* skinName) {
-    if( skeleton ) {
+    if (skeleton) {
         skeleton->setSkin(skinName);
         skeleton->setSlotsToSetupPose();
     }
 }
 
 const char* bsglSpine::GetSkin() const {
-    if( skeleton && skeleton->getSkin() ) {
+    if (skeleton && skeleton->getSkin()) {
         return skeleton->getSkin()->getName().buffer();
     }
     return "";
@@ -379,7 +379,7 @@ void bsglSpine::SetCompleteCallback(bsglSpineCompleteCallback callback, void* us
 // Update / Render
 //---------------------------------------------------------------------
 void bsglSpine::Update(float deltaTime) {
-    if( !skeleton ) {
+    if (!skeleton) {
         return;
     }
 
@@ -412,7 +412,7 @@ static int SpineBlendToBSGL(spine::BlendMode mode) {
 }
 
 void bsglSpine::Render() {
-    if( !skeleton ) {
+    if (!skeleton) {
         return;
     }
 
@@ -425,7 +425,7 @@ void bsglSpine::Render() {
     for( size_t i=0; i<drawOrder.size(); ++i ) {
         spine::Slot* slot = drawOrder[i];
         spine::Attachment* attachment = slot->getAttachment();
-        if( !attachment ) {
+        if (!attachment) {
             continue;
         }
 
@@ -433,10 +433,10 @@ void bsglSpine::Render() {
         spine::Color& skelCol = skeleton->getColor();
         spine::Color& slotCol = slot->getColor();
 
-        if( attachment->getRTTI().instanceOf(spine::RegionAttachment::rtti) ) {
+        if (attachment->getRTTI().instanceOf(spine::RegionAttachment::rtti)) {
             spine::RegionAttachment* region = (spine::RegionAttachment*)attachment;
             spine::AtlasRegion* atlasRegion = (spine::AtlasRegion*)region->getRegion();
-            if( !atlasRegion || !atlasRegion->page || !atlasRegion->page->texture ) {
+            if (!atlasRegion || !atlasRegion->page || !atlasRegion->page->texture) {
                 continue;
             }
 
@@ -470,10 +470,10 @@ void bsglSpine::Render() {
             }
             bsgl->Gfx_RenderQuad(&quad);
         }
-        else if( attachment->getRTTI().instanceOf(spine::MeshAttachment::rtti) ) {
+        else if (attachment->getRTTI().instanceOf(spine::MeshAttachment::rtti)) {
             spine::MeshAttachment* mesh = (spine::MeshAttachment*)attachment;
             spine::AtlasRegion* atlasRegion = (spine::AtlasRegion*)mesh->getRegion();
-            if( !atlasRegion || !atlasRegion->page || !atlasRegion->page->texture ) {
+            if (!atlasRegion || !atlasRegion->page || !atlasRegion->page->texture) {
                 continue;
             }
 
@@ -497,14 +497,14 @@ void bsglSpine::Render() {
             // not fit into the vertex buffer at once
             size_t nTri  = triangles.size() / 3;
             size_t done  = 0;
-            while( done < nTri ) {
+            while (done < nTri) {
                 int maxPrim = 0;
                 bsglVertex* vb = bsgl->Gfx_StartBatch(BSGLPRIM_TRIPLES, tex, blend, &maxPrim);
-                if( !vb || !maxPrim ) {
+                if (!vb || !maxPrim) {
                     break;
                 }
                 int chunk = int(nTri - done);
-                if( chunk > maxPrim ) {
+                if (chunk > maxPrim) {
                     chunk = maxPrim;
                 }
                 bsglVertex* v = vb;
@@ -536,7 +536,7 @@ void bsglSpine::Render() {
 //---------------------------------------------------------------------
 void bsglSpine::GetBoundingBox(float* minX, float* minY, float* maxX, float* maxY) {
     *minX = *minY = *maxX = *maxY = 0.0f;
-    if( !skeleton ) {
+    if (!skeleton) {
         return;
     }
 
@@ -552,10 +552,10 @@ void bsglSpine::GetBoundingBox(float* minX, float* minY, float* maxX, float* max
     const float cy[4] = { y, y, y+h, y+h };
     for( int i=0; i<4; ++i ) {
         WorldToScreen(cx[i], cy[i], &sx, &sy);
-        if( sx < *minX ) *minX = sx;
-        if( sx > *maxX ) *maxX = sx;
-        if( sy < *minY ) *minY = sy;
-        if( sy > *maxY ) *maxY = sy;
+        if (sx < *minX) *minX = sx;
+        if (sx > *maxX) *maxX = sx;
+        if (sy < *minY) *minY = sy;
+        if (sy > *maxY) *maxY = sy;
     }
 }
 

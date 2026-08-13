@@ -43,17 +43,17 @@ static int nObjects;
 static int nBlend;
 
 // Pointer to the BSGL interface (helper classes require this to work)
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 // Resource handles
 static HTEXTURE    tex = 0;
-static bsglSprite* spr = 0;
+static bsglSprite* spr = nullptr;
 static bsglQuad    bgquad;
 
 // Text display
 static HTEXTURE    text_tex = 0;
-static bsglSprite* text_spr = 0;
-static bsglFont*   font     = 0;
+static bsglSprite* text_spr = nullptr;
+static bsglFont*   font     = nullptr;
 static float       text_dt  = 1.0f; // force an immediate redraw
 
 // The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
@@ -62,7 +62,7 @@ static const char* const FONT_FILE = "font.ttf";
 
 static bool FontFileExists() {
     FILE* f = fopen(FONT_FILE, "rb");
-    if( f ) {
+    if (f) {
         fclose(f);
         return true;
     }
@@ -93,11 +93,11 @@ static void SetBlend(int blend) {
         {RGBA(0x20, 0x20, 0x20, 0x40), RGBA(0x30, 0x20, 0x10, 0x40), RGBA(0x10, 0x20, 0x30, 0x40), RGBA(0x20, 0x30, 0x10, 0x40), RGBA(0x10, 0x20, 0x30, 0x40)},
     };
 
-    if( blend > 4 ) blend = 0;
+    if (blend > 4) blend = 0;
     nBlend = blend;
 
     spr->SetBlendMode(sprBlend[blend]);
-    if( text_spr ) {
+    if (text_spr) {
         text_spr->SetColor(fntColor[blend]);
     }
     for( int i=0; i<MAX_OBJECTS; ++i ) {
@@ -109,7 +109,7 @@ static void SetBlend(int blend) {
 
 // Redraw the info text (mushroom count, blend mode, FPS)
 static void UpdateText() {
-    if( !font ) {
+    if (!font) {
         return;
     }
 
@@ -138,33 +138,33 @@ bool LogicFunc() {
     bsgl->Control_GetState();
 
     // Process keys
-    if( bsgl->Control_IsDown(INP_ESC) ) {
+    if (bsgl->Control_IsDown(INP_ESC)) {
         return true;
     }
-    if( bsgl->Control_IsDown(INP_UP) ) {
-        if( nObjects < MAX_OBJECTS ) nObjects += 100;
+    if (bsgl->Control_IsDown(INP_UP)) {
+        if (nObjects < MAX_OBJECTS) nObjects += 100;
         text_dt = 1.0f;
     }
-    if( bsgl->Control_IsDown(INP_DOWN) ) {
-        if( nObjects > MIN_OBJECTS ) nObjects -= 100;
+    if (bsgl->Control_IsDown(INP_DOWN)) {
+        if (nObjects > MIN_OBJECTS) nObjects -= 100;
         text_dt = 1.0f;
     }
-    if( bsgl->Control_IsDown(INP_SPACE) ) {
+    if (bsgl->Control_IsDown(INP_SPACE)) {
         SetBlend(++nBlend);
     }
 
     // Update the scene
     for( int i=0; i<nObjects; ++i ) {
         pObjects[i].x += pObjects[i].dx*dt;
-        if( pObjects[i].x > SCREEN_WIDTH || pObjects[i].x < 0 ) {
+        if (pObjects[i].x > SCREEN_WIDTH || pObjects[i].x < 0) {
             pObjects[i].dx = -pObjects[i].dx;
         }
         pObjects[i].y += pObjects[i].dy*dt;
-        if( pObjects[i].y > SCREEN_HEIGHT || pObjects[i].y < 0 ) {
+        if (pObjects[i].y > SCREEN_HEIGHT || pObjects[i].y < 0) {
             pObjects[i].dy = -pObjects[i].dy;
         }
         pObjects[i].scale += pObjects[i].dscale*dt;
-        if( pObjects[i].scale > 2 || pObjects[i].scale < 0.5f ) {
+        if (pObjects[i].scale > 2 || pObjects[i].scale < 0.5f) {
             pObjects[i].dscale = -pObjects[i].dscale;
         }
         pObjects[i].rot += pObjects[i].drot*dt;
@@ -172,7 +172,7 @@ bool LogicFunc() {
 
     // Redraw the info text a few times a second (for the FPS readout)
     text_dt += dt;
-    if( text_dt >= 0.25f ) {
+    if (text_dt >= 0.25f) {
         text_dt = 0.0f;
         UpdateText();
     }
@@ -193,7 +193,7 @@ bool RenderFunc() {
                       pObjects[i].rot, pObjects[i].scale);
     }
 
-    if( text_spr ) {
+    if (text_spr) {
         text_spr->Render(7, 7);
     }
 
@@ -213,10 +213,10 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, SCREEN_WIDTH);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, SCREEN_HEIGHT);
 
-    if( bsgl->System_Initiate() ) {
+    if (bsgl->System_Initiate()) {
         // Load the mushroom texture (see the header comment about the format)
         tex = bsgl->Texture_Load("mushroom.bmp");
-        if( !tex ) {
+        if (!tex) {
             bsgl->System_Log("Error: can't load mushroom.bmp (see tutorials/README.md)");
             bsgl->System_Shutdown();
             bsgl->Release();
@@ -245,12 +245,12 @@ void bsgl_main() {
         }
 
         // Set up the info text display
-        if( FontFileExists() ) {
+        if (FontFileExists()) {
             bsgl->System_Log("Using font file: %s", FONT_FILE);
             font = new bsglFont(FONT_FILE, 14);
             text_tex = bsgl->Texture_Create(320, 64);
             text_spr = new bsglSprite(text_tex, 0, 0, 320, 64);
-        }else {
+        } else {
             bsgl->System_Log("Warning: %s not found, no on-screen text.", FONT_FILE);
         }
 
@@ -277,14 +277,14 @@ void bsgl_main() {
         // Delete created objects and free loaded resources
         delete font;
         delete text_spr;
-        if( text_tex ) {
+        if (text_tex) {
             bsgl->Texture_Free(text_tex);
         }
         delete spr;
         bsgl->Texture_Free(tex);
 
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 

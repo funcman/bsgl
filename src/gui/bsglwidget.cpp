@@ -8,7 +8,7 @@
 #include "bsglwidget.h"
 #include <string.h>
 
-BSGL* bsglWidget::bsgl=0;
+BSGL* bsglWidget::bsgl=nullptr;
 
 bsglWidget::bsglWidget(int x, int y, int width, int height) {
     bsgl = bsglCreate(BSGL_VERSION);
@@ -76,7 +76,7 @@ void bsglWidget::MouseAt(float x, float y, MouseState state) {
                 if (inKids) {
                     focus_ = false;
                     w->MouseAt(x-x_, y-y_, state);
-                }else {
+                } else {
                     focus_ = true;
                     ox = x;
                     oy = y;

@@ -16,11 +16,11 @@
 #include "bsglsprite.h"
 #include "bsglanim.h"
 
-static BSGL* bsgl = 0;
+static BSGL* bsgl = nullptr;
 
 // Pointers to the BSGL helper objects we will use
-static bsglSprite*    spr  = 0;
-static bsglAnimation* anim = 0;
+static bsglSprite*    spr  = nullptr;
+static bsglAnimation* anim = nullptr;
 
 // Handle for the texture
 static HTEXTURE tex = 0;
@@ -43,19 +43,19 @@ bool LogicFunc() {
     bsgl->Control_GetState();
 
     // Process keys
-    if( bsgl->Control_IsDown(INP_ESC) ) {
+    if (bsgl->Control_IsDown(INP_ESC)) {
         return true;
     }
-    if( KeyHeld(INP_LEFT)  ) dx -= speed*dt;
-    if( KeyHeld(INP_RIGHT) ) dx += speed*dt;
-    if( KeyHeld(INP_UP)    ) dy -= speed*dt;
-    if( KeyHeld(INP_DOWN)  ) dy += speed*dt;
+    if (KeyHeld(INP_LEFT)) dx -= speed*dt;
+    if (KeyHeld(INP_RIGHT)) dx += speed*dt;
+    if (KeyHeld(INP_UP)) dy -= speed*dt;
+    if (KeyHeld(INP_DOWN)) dy += speed*dt;
 
     // SPACE toggles the animation playback
-    if( bsgl->Control_IsDown(INP_SPACE) ) {
-        if( anim->IsPlaying() ) {
+    if (bsgl->Control_IsDown(INP_SPACE)) {
+        if (anim->IsPlaying()) {
             anim->Stop();
-        }else {
+        } else {
             anim->Play();
         }
     }
@@ -65,10 +65,10 @@ bool LogicFunc() {
     dy *= friction;
     x += dx;
     y += dy;
-    if( x > 784 ) { x = 784 - (x-784); dx = -dx; }
-    if( x < 16  ) { x = 16 + 16 - x;   dx = -dx; }
-    if( y > 584 ) { y = 584 - (y-584); dy = -dy; }
-    if( y < 16  ) { y = 16 + 16 - y;   dy = -dy; }
+    if (x > 784) { x = 784 - (x-784); dx = -dx; }
+    if (x < 16) { x = 16 + 16 - x;   dx = -dx; }
+    if (y > 584) { y = 584 - (y-584); dy = -dy; }
+    if (y < 16) { y = 16 + 16 - y;   dy = -dy; }
 
     // Spin the orb slowly
     rot += dt;
@@ -106,11 +106,11 @@ void bsgl_main() {
     bsgl->System_SetStateInt(BSGL_SCREENWIDTH, 800);
     bsgl->System_SetStateInt(BSGL_SCREENHEIGHT, 600);
 
-    if( bsgl->System_Initiate() ) {
+    if (bsgl->System_Initiate()) {
         // Load both textures; anim.bmp holds six 48x48 frames side by side
         tex = bsgl->Texture_Load("sprite.bmp");
         HTEXTURE anim_tex = bsgl->Texture_Load("anim.bmp");
-        if( !tex || !anim_tex ) {
+        if (!tex || !anim_tex) {
             bsgl->System_Log("Error: can't load sprite.bmp or anim.bmp");
             bsgl->System_Shutdown();
             bsgl->Release();
@@ -142,7 +142,7 @@ void bsgl_main() {
         bsgl->Texture_Free(tex);
 
         bsgl->System_Shutdown();
-    }else {
+    } else {
         bsgl->System_Log("Error: %s", bsgl->System_GetErrorMessage());
     }
 
