@@ -11,3 +11,6 @@
 [submodule "3rd/spine-runtimes"]
 	path = 3rd/spine-runtimes
 	url = https://github.com/EsotericSoftware/spine-runtimes
+[submodule "3rd/DragonBonesCPP"]
+	path = 3rd/DragonBonesCPP
+	url = https://github.com/DragonBones/DragonBonesCPP.git

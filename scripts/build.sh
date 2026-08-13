@@ -44,6 +44,16 @@ if [ -e "$ROOT/.git" ]; then
     fi
 fi
 
+# Deploy the DragonBonesCPP CMake script
+# DragonBonesCPP ships no CMake build of its own; once the submodule is
+# present, copy our script in as 3rd/DragonBonesCPP/CMakeLists.txt.
+if [ -d "$ROOT/3rd/DragonBonesCPP/DragonBones/src" ]; then
+    if ! cmp -s "$ROOT/scripts/DragonBonesCPP-CMakeLists.txt" "$ROOT/3rd/DragonBonesCPP/CMakeLists.txt" 2>/dev/null; then
+        echo "==> Deploying 3rd/DragonBonesCPP/CMakeLists.txt ..."
+        cp "$ROOT/scripts/DragonBonesCPP-CMakeLists.txt" "$ROOT/3rd/DragonBonesCPP/CMakeLists.txt"
+    fi
+fi
+
 if ! command -v cmake >/dev/null 2>&1; then
     echo "cmake not found" >&2
     exit 1

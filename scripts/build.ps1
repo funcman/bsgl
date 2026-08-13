@@ -40,6 +40,20 @@ if (Test-Path (Join-Path $Root ".git")) {
     }
 }
 
+#--- Deploy the DragonBonesCPP CMake script ------------------------------
+# DragonBonesCPP ships no CMake build of its own; once the submodule is
+# present, copy our script in as 3rd/DragonBonesCPP/CMakeLists.txt.
+$dbcDir = Join-Path $Root "3rd\DragonBonesCPP"
+$dbcSrc = Join-Path $Root "scripts\DragonBonesCPP-CMakeLists.txt"
+$dbcDst = Join-Path $dbcDir "CMakeLists.txt"
+if (Test-Path (Join-Path $dbcDir "DragonBones\src")) {
+    if ((-not (Test-Path $dbcDst)) -or
+        ((Get-FileHash $dbcSrc).Hash -ne (Get-FileHash $dbcDst).Hash)) {
+        Write-Host "==> Deploying 3rd\DragonBonesCPP\CMakeLists.txt ..."
+        Copy-Item $dbcSrc $dbcDst -Force
+    }
+}
+
 #--- Find cmake: prefer PATH, then the one bundled with Visual Studio ---
 $cmake = $null
 

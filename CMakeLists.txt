@@ -15,7 +15,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 #--- Third-party dependencies (git submodules under 3rd/) --------------
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/SDL3/CMakeLists.txt"
 OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/freetype/CMakeLists.txt"
-OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/spine-runtimes/spine-cpp/CMakeLists.txt")
+OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/spine-runtimes/spine-cpp/CMakeLists.txt"
+OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/DragonBonesCPP/DragonBones/src")
     message(FATAL_ERROR
         "git submodules are missing. Run:\n"
         "  git submodule update --init --recursive")
@@ -48,6 +49,17 @@ add_library(spine-cpp STATIC ${SPINE_CPP_SOURCES})
 target_include_directories(spine-cpp
     PUBLIC 3rd/spine-runtimes/spine-cpp/spine-cpp/include)
 set_target_properties(spine-cpp PROPERTIES CXX_STANDARD 14)
+
+# DragonBonesCPP: ships no CMake build of its own. The build scripts
+# copy scripts/DragonBonesCPP-CMakeLists.txt in as its CMakeLists.txt;
+# do the same here so that invoking cmake directly also works.
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/DragonBonesCPP/CMakeLists.txt")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/scripts/DragonBonesCPP-CMakeLists.txt"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/3rd/DragonBonesCPP/CMakeLists.txt" COPYONLY)
+endif()
+# no EXCLUDE_FROM_ALL: nothing links dragonbones yet, but the default
+# build should still compile it
+add_subdirectory(3rd/DragonBonesCPP)
 
 #--- bsgl static library -------------------------------------------------
 add_library(bsgl STATIC

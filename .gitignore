@@ -17,6 +17,9 @@ CMakeUserPresets.json
 compile_commands.json
 .cache/
 
+#--- Deployed by the build scripts (see scripts/build.ps1 / build.sh) ----
+3rd/DragonBonesCPP/CMakeLists.txt
+
 #--- Editors -------------------------------------------------------------
 .vscode/
 .idea/

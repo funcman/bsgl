@@ -1,0 +1,38 @@
+#=====================================================================
+# CMakeLists.txt for the DragonBonesCPP submodule (3rd/DragonBonesCPP)
+#
+# This file is NOT part of the upstream repository. It lives in the
+# BSGL repository as scripts/DragonBonesCPP-CMakeLists.txt and is
+# copied to 3rd/DragonBonesCPP/CMakeLists.txt by scripts/build.ps1 /
+# scripts/build.sh once the git submodules have been initialized (the
+# root CMakeLists.txt also deploys it when cmake is invoked directly).
+#
+# It builds only the DragonBones core runtime (DragonBones/src) with
+# its bundled 3rdParty dependency (rapidjson, header-only). The
+# Cocos2DX_3.x, SFML and AndroidCompose bindings are intentionally
+# not built.
+#=====================================================================
+cmake_minimum_required(VERSION 3.16)
+
+project(dragonbones LANGUAGES CXX)
+
+#--- DragonBones core runtime -------------------------------------------
+file(GLOB_RECURSE DRAGONBONES_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/DragonBones/src/dragonBones/*.cpp")
+
+add_library(dragonbones STATIC ${DRAGONBONES_SOURCES})
+
+target_include_directories(dragonbones
+    PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/DragonBones/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty" # rapidjson (header-only)
+)
+
+# the core uses C++11/14 features; C++17 removes std::iterator which
+# the bundled rapidjson still relies on
+set_target_properties(dragonbones PROPERTIES CXX_STANDARD 14)
+
+if(MSVC)
+    # rapidjson/dragonbones trigger C4819 on non-UTF8 code pages
+    target_compile_options(dragonbones PRIVATE /wd4819)
+endif()
