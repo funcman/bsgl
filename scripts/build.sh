@@ -36,9 +36,10 @@ if [ "$CLEAN" -eq 1 ]; then
     [ "$CLEAN_ONLY" -eq 1 ] && exit 0
 fi
 
-# Initialize git submodules (3rd/SDL3)
+# Initialize git submodules (3rd/*): any entry still prefixed with '-'
+# in `git submodule status` has not been checked out yet.
 if [ -e "$ROOT/.git" ]; then
-    if [ ! -f "$ROOT/3rd/SDL3/CMakeLists.txt" ]; then
+    if git -C "$ROOT" submodule status --recursive 2>/dev/null | grep -q '^-'; then
         echo "==> Initializing git submodules ..."
         git -C "$ROOT" submodule update --init --recursive
     fi

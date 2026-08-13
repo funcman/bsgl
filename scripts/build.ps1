@@ -31,9 +31,11 @@ if ($Clean -or $CleanOnly) {
     if ($CleanOnly) { exit 0 }
 }
 
-#--- Initialize git submodules (3rd/SDL3) -------------------------------
+#--- Initialize git submodules (3rd/*) -----------------------------------
+# any entry still prefixed with '-' in `git submodule status` has not
+# been checked out yet
 if (Test-Path (Join-Path $Root ".git")) {
-    if (-not (Test-Path (Join-Path $Root "3rd\SDL3\CMakeLists.txt"))) {
+    if (git -C $Root submodule status --recursive 2>$null | Select-String -Pattern '^-' -Quiet) {
         Write-Host "==> Initializing git submodules ..."
         git -C $Root submodule update --init --recursive
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

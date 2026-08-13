@@ -20,6 +20,7 @@
 [submodule "3rd/DragonBonesCPP"]
 	path = 3rd/DragonBonesCPP
 	url = https://github.com/DragonBones/DragonBonesCPP.git
+	ignore = untracked
 [submodule "3rd/zlib"]
 	path = 3rd/zlib
 	url = https://github.com/madler/zlib
