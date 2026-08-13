@@ -15,6 +15,7 @@ set(BSGL_TUTORIALS
     tutorial06
     tutorial07
     tutorial08
+    tutorial09
 )
 
 # whatever resources are present in res/ are copied next to the

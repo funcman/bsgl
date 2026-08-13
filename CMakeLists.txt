@@ -60,8 +60,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/DragonBonesCPP/CMakeLists.txt")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/scripts/DragonBonesCPP-CMakeLists.txt"
                    "${CMAKE_CURRENT_SOURCE_DIR}/3rd/DragonBonesCPP/CMakeLists.txt" COPYONLY)
 endif()
-# no EXCLUDE_FROM_ALL: nothing links dragonbones yet, but the default
-# build should still compile it
+# no EXCLUDE_FROM_ALL: bsgl links dragonbones (bsgldbones.cpp)
 add_subdirectory(3rd/DragonBonesCPP)
 
 # zlib (required by libspng)
@@ -150,6 +149,7 @@ add_library(bsgl STATIC
     src/advance/bsglsprite.cpp
     src/advance/bsglanim.cpp
     src/advance/bsglspine.cpp
+    src/advance/bsgldbones.cpp
     src/gui/bsglfont.cpp
     src/gui/bsglwidget.cpp
 )
@@ -163,7 +163,8 @@ target_include_directories(bsgl
 
 # freetype is PUBLIC: include/bsglfont.h includes <ft2build.h>
 # spine-cpp is PUBLIC: bsglSpine forwards spine types to its users
-target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2 spine-cpp)
+# dragonbones is PUBLIC: bsglDBones forwards dragonBones types to its users
+target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2 spine-cpp dragonbones)
 
 # image decoders used by graphics.cpp (Texture_Load)
 target_link_libraries(bsgl PRIVATE spng turbojpeg-static)
