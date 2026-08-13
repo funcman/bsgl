@@ -15,6 +15,7 @@ counterpart and were replaced by tutorials on BSGL-specific topics.)
 | tutorial05 | Config file (`Config_*`), random numbers, timer and logging |
 | tutorial06 | Creating a simple menu with `bsglWidget` |
 | tutorial07 | Thousand of Hares: sprite batching stress test, blend modes |
+| tutorial08 | Spine skeletal animation with `bsglSpine` (spine-cpp runtime) |
 
 ## How it works
 
@@ -93,3 +94,13 @@ cmake -S . -B build -DBSGL_BUILD_TUTORIALS=OFF
   directory. `System_Initiate()` also reads the `[Screen]`, `[FPS]`
   and `[Window]` sections from that file, so you can change window
   size, title and frame rates without recompiling.
+- **Spine (tutorial08).** Plays the official `spineboy` example via
+  the spine-cpp runtime, pulled in as the `3rd/spine-runtimes`
+  submodule (branch 4.2 — the runtime version must match the version
+  the data was exported with). The atlas references `spineboy.bmp`,
+  an uncompressed 32-bit BMP converted from the official
+  `spineboy.png`, because `Texture_Load()` only reads that format.
+  The spineboy assets are for evaluation/learning only and may not be
+  used commercially; distributing software containing the Spine
+  Runtimes requires a Spine Editor license. See
+  `res/spineboy-LICENSE.txt` and `3rd/spine-runtimes/LICENSE`.

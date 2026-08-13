@@ -1,0 +1,49 @@
+Spineboy Example Assets - License Notice
+=========================================
+
+The following files in this directory:
+
+  spineboy.atlas
+  spineboy.png
+  spineboy.bmp     (32-bit BGRA conversion of spineboy.png for BSGL's
+                    Texture_Load, which only reads uncompressed 32-bit BMP)
+  spineboy-pro.json
+  spineboy-pro.skel
+  spineboy-ess.json
+  spineboy-ess.skel
+
+are the official "spineboy" example assets created by Esoteric Software LLC,
+taken from the Spine Runtimes repository (branch 4.2):
+
+  https://github.com/EsotericSoftware/spine-runtimes/tree/4.2/examples/spineboy/export
+
+Copyright (c) 2013-2025, Esoteric Software LLC. All rights reserved.
+
+Terms of use
+------------
+
+1. These assets are provided by Esoteric Software for evaluation and
+   learning purposes, free of charge. They are used in this project solely
+   as demonstration material for the tutorials.
+
+2. These assets may NOT be used for commercial purposes or to directly or
+   indirectly generate revenue. If you ship a commercial product, you must
+   replace them with your own artwork.
+
+3. Integrating the Spine Runtimes into software, or distributing software
+   that contains the Spine Runtimes, is subject to the Spine Runtimes
+   License Agreement and Section 2 of the Spine Editor License Agreement.
+   In short: you must hold a valid Spine Editor license at the time of
+   integration, or every user of your software must hold their own Spine
+   Editor license.
+
+Full license texts:
+
+  Spine Runtimes License Agreement:
+    https://esotericsoftware.com/spine-runtimes-license
+
+  Spine Editor License Agreement (Section 2):
+    https://esotericsoftware.com/spine-editor-license#s2
+
+These assets are provided "AS IS", without warranty of any kind, as stated
+in the Spine Runtimes License Agreement.

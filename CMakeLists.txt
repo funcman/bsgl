@@ -14,7 +14,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 #--- Third-party dependencies (git submodules under 3rd/) --------------
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/SDL3/CMakeLists.txt"
-OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/freetype/CMakeLists.txt")
+OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/freetype/CMakeLists.txt"
+OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/spine-runtimes/spine-cpp/CMakeLists.txt")
     message(FATAL_ERROR
         "git submodules are missing. Run:\n"
         "  git submodule update --init --recursive")
@@ -38,6 +39,16 @@ add_subdirectory(3rd/freetype EXCLUDE_FROM_ALL)
 set(tinyxml2_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(3rd/tinyxml2 EXCLUDE_FROM_ALL)
 
+# spine-cpp (from spine-runtimes, branch 4.2): static library, built
+# directly from sources - the bundled CMakeLists pulls in example
+# dependencies (glfw etc.) we do not want
+file(GLOB SPINE_CPP_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rd/spine-runtimes/spine-cpp/spine-cpp/src/spine/*.cpp")
+add_library(spine-cpp STATIC ${SPINE_CPP_SOURCES})
+target_include_directories(spine-cpp
+    PUBLIC 3rd/spine-runtimes/spine-cpp/spine-cpp/include)
+set_target_properties(spine-cpp PROPERTIES CXX_STANDARD 14)
+
 #--- bsgl static library -------------------------------------------------
 add_library(bsgl STATIC
     src/core/system.cpp
@@ -49,6 +60,7 @@ add_library(bsgl STATIC
     src/advance/bsglrect.cpp
     src/advance/bsglsprite.cpp
     src/advance/bsglanim.cpp
+    src/advance/bsglspine.cpp
     src/gui/bsglfont.cpp
     src/gui/bsglwidget.cpp
 )
@@ -61,7 +73,8 @@ target_include_directories(bsgl
 )
 
 # freetype is PUBLIC: include/bsglfont.h includes <ft2build.h>
-target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2)
+# spine-cpp is PUBLIC: bsglSpine forwards spine types to its users
+target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2 spine-cpp)
 
 # OpenGL
 if(WIN32)

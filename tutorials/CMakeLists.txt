@@ -14,13 +14,16 @@ set(BSGL_TUTORIALS
     tutorial05
     tutorial06
     tutorial07
+    tutorial08
 )
 
 # whatever resources are present in res/ are copied next to the
 # executables (globbed at configure time, so re-run the configure
 # step after adding a file, e.g. the zazaka.bmp for tutorial07)
 file(GLOB BSGL_TUT_RES "${CMAKE_CURRENT_SOURCE_DIR}/res/*.bmp"
-                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.ttf")
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.ttf"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.atlas"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.json")
 
 foreach(tut ${BSGL_TUTORIALS})
     add_executable(${tut} ${tut}/main.cpp)
