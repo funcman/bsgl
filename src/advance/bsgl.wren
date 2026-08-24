@@ -1,0 +1,370 @@
+##
+## bsgl embedded script library (module "bsgl")
+##
+## Injected by bsglWren as the "bsgl" module. Foreign methods are
+## implemented in src/advance/bsglwren.cpp; everything below them is
+## plain Wren sugar on top of the raw bindings.
+##
+
+class Blend {
+    static colorMul    { 0 }
+    static colorAdd    { 1 }
+    static alphaBlend  { 2 }
+    static zWrite      { 4 }
+    static default     { 2 }
+    static defaultZ    { 6 }
+}
+
+class Color {
+    static rgba(r, g, b, a) { (a * 16777216 + b * 65536 + g * 256 + r).truncate }
+    static white  { 0xFFFFFFFF }
+    static black  { 0xFF000000 }
+    static red    { 0xFF0000FF }
+    static green  { 0xFF00FF00 }
+    static blue   { 0xFFFF0000 }
+}
+
+class Key {
+    static mouseL    { 0 }
+    static mouseR    { 1 }
+    static a { 65 }  static b { 66 }  static c { 67 }  static d { 68 }
+    static e { 69 }  static f { 70 }  static g { 71 }  static h { 72 }
+    static i { 73 }  static j { 74 }  static k { 75 }  static l { 76 }
+    static m { 77 }  static n { 78 }  static o { 79 }  static p { 80 }
+    static q { 81 }  static r { 82 }  static s { 83 }  static t { 84 }
+    static u { 85 }  static v { 86 }  static w { 87 }  static x { 88 }
+    static y { 89 }  static z { 90 }
+    static d0 { 110 } static d1 { 101 } static d2 { 102 } static d3 { 103 }
+    static d4 { 104 } static d5 { 105 } static d6 { 106 } static d7 { 107 }
+    static d8 { 108 } static d9 { 109 }
+    static f1 { 121 }  static f2 { 122 }  static f3 { 123 }
+    static f4 { 124 }  static f5 { 125 }  static f6 { 126 }
+    static f7 { 127 }  static f8 { 128 }  static f9 { 129 }
+    static f10 { 130 } static f11 { 131 } static f12 { 132 }
+    static esc      { 160 }
+    static tab      { 161 }
+    static capsLock { 162 }
+    static shiftL   { 163 }
+    static shiftR   { 164 }
+    static ctrlL    { 165 }
+    static ctrlR    { 166 }
+    static altL     { 167 }
+    static altR     { 168 }
+    static space    { 169 }
+    static enter    { 170 }
+    static del      { 171 }
+    static up       { 181 }
+    static down     { 182 }
+    static left     { 183 }
+    static right    { 184 }
+    static home     { 191 }
+    static end      { 192 }
+    static pgUp     { 193 }
+    static pgDn     { 194 }
+    static touch    { 255 }
+}
+
+class Anim {
+    static fwd          { 0 }
+    static rev          { 1 }
+    static pingpong     { 2 }
+    static loop         { 4 }
+    static pingpongLoop { 6 }
+}
+
+## Axis-aligned rectangle, mirrors bsglRect
+class Rect {
+    construct new(x1, y1, x2, y2) {
+        _x1 = x1 _y1 = y1 _x2 = x2 _y2 = y2
+        _clean = false
+    }
+
+    x1 { _x1 } y1 { _y1 } x2 { _x2 } y2 { _y2 }
+
+    clear() { _x1 = 0 _y1 = 0 _x2 = 0 _y2 = 0 _clean = true }
+    isClean { _clean }
+
+    set(x1, y1, x2, y2) {
+        _x1 = x1 _y1 = y1 _x2 = x2 _y2 = y2 _clean = false
+    }
+
+    setRadius(x, y, r) {
+        _x1 = x - r _y1 = y - r _x2 = x + r _y2 = y + r _clean = false
+    }
+
+    encapsulate(x, y) {
+        if (_clean || x < _x1) _x1 = x
+        if (_clean || y < _y1) _y1 = y
+        if (_clean || x > _x2) _x2 = x
+        if (_clean || y > _y2) _y2 = y
+        _clean = false
+    }
+
+    testPoint(x, y) { x >= _x1 && x <= _x2 && y >= _y1 && y <= _y2 }
+
+    intersect(r) {
+        _x1 > r.x2 || _x2 < r.x1 || _y1 > r.y2 || _y2 < r.y1
+    }
+}
+
+class System {
+    foreign static title=(v)
+    foreign static logFile=(v)
+    foreign static cfgFile=(v)
+    foreign static windowed=(v)
+    foreign static width=(v)
+    foreign static height=(v)
+    foreign static width
+    foreign static height
+    foreign static log(msg)
+    foreign static quit
+    foreign static errorMessage
+}
+
+class Config {
+    foreign static getInt(sec, opt, def)
+    foreign static setInt(sec, opt, val)
+    foreign static getFloat(sec, opt, def)
+    foreign static setFloat(sec, opt, val)
+    foreign static getString(sec, opt, def)
+    foreign static setString(sec, opt, val)
+}
+
+class Timer {
+    foreign static time
+    foreign static delta
+    foreign static fps
+}
+
+class Random {
+    foreign static seed(s)
+    foreign static int(min, max)
+    foreign static float(min, max)
+}
+
+class Input {
+    foreign static update
+    foreign static isDown(key)
+    foreign static isPassing(key)
+    foreign static isUp(key)
+    foreign static mouseX
+    foreign static mouseY
+}
+
+class Gfx {
+    foreign static beginScene
+    foreign static endScene
+    foreign static clear(color)
+    foreign static setClipping(x, y, w, h)
+    foreign static setTransform(x, y, dx, dy, rot, hscale, vscale)
+    foreign static renderQuadRaw(q)
+
+    static fillRect(color, x1, y1, x2, y2) {
+        var q = Quad.new()
+        q.setTexture(null)
+        q.blend = Blend.default
+        q.setVertex(0, 0, 0, x1, y1, 0.5, color)
+        q.setVertex(1, 0, 0, x2, y1, 0.5, color)
+        q.setVertex(2, 0, 0, x2, y2, 0.5, color)
+        q.setVertex(3, 0, 0, x1, y2, 0.5, color)
+        renderQuadRaw(q)
+    }
+}
+
+class Quad {
+    construct new() { }
+
+    foreign static allocate
+    foreign finalize
+    foreign setTexture(texture)
+    foreign blend=(b)
+    foreign setVertex(i, tx, ty, x, y, z, color)
+}
+
+class Texture {
+    construct new(filename) { _load(filename) }
+    construct blank(w, h)   { _create(w, h) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _load(filename)
+    foreign _create(w, h)
+    foreign loaded
+    foreign width
+    foreign height
+    foreign free
+}
+
+class Sprite {
+    construct new(texture, x, y, w, h) { _init(texture, x, y, w, h) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _init(texture, x, y, w, h)
+
+    foreign render(x, y)
+    foreign renderEx(x, y, rot)
+    foreign renderEx(x, y, rot, hscale, vscale)
+    foreign renderStretch(x1, y1, x2, y2)
+    foreign render4V(x0, y0, x1, y1, x2, y2, x3, y3)
+
+    foreign setTexture(texture)
+    foreign setTextureRect(x, y, w, h)
+    foreign setColor(color)
+    foreign setZ(z)
+    foreign setBlendMode(blend)
+    foreign setHotSpot(x, y)
+    foreign setFlip(fx, fy)
+
+    foreign width
+    foreign height
+}
+
+class Animation {
+    construct new(texture, nframes, fps, x, y, w, h) {
+        _init(texture, nframes, fps, x, y, w, h)
+    }
+
+    foreign static allocate
+    foreign finalize
+    foreign _init(texture, nframes, fps, x, y, w, h)
+
+    foreign play
+    foreign stop
+    foreign resume
+    foreign update(dt)
+    foreign isPlaying
+
+    foreign setTexture(texture)
+    foreign setTextureRect(x, y, w, h)
+    foreign setMode(mode)
+    foreign setSpeed(fps)
+    foreign setFrame(n)
+    foreign setFrames(n)
+
+    foreign mode
+    foreign speed
+    foreign frame
+    foreign frames
+
+    foreign render(x, y)
+    foreign renderEx(x, y, rot)
+    foreign renderEx(x, y, rot, hscale, vscale)
+    foreign setColor(color)
+    foreign setBlendMode(blend)
+    foreign setHotSpot(x, y)
+    foreign setFlip(fx, fy)
+    foreign width
+    foreign height
+}
+
+class Font {
+    construct new(filename, size) { _init(filename, size) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _init(filename, size)
+    foreign loaded
+    foreign render(x, y, text, color)
+}
+
+class Spine {
+    construct new(skeletonFile, atlasFile) { _init(skeletonFile, atlasFile) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _init(skeletonFile, atlasFile)
+    foreign loaded
+
+    foreign setAnimation(track, name, loop)
+    foreign addAnimation(track, name, loop, delay)
+    foreign setEmptyAnimation(track, mixDuration)
+    foreign clearTrack(track)
+    foreign clearTracks
+    foreign currentAnimation
+    foreign isPlaying
+    foreign timeScale=(v)
+    foreign timeScale
+    foreign setDefaultMix(duration)
+    foreign setMix(fromName, toName, duration)
+
+    foreign setPos(x, y)
+    foreign x
+    foreign y
+    foreign rotation=(deg)
+    foreign rotation
+    foreign setScale(sx, sy)
+    foreign setFlip(fx, fy)
+    foreign color=(c)
+    foreign color
+
+    foreign update(dt)
+    foreign render
+    foreign hitTest(x, y)
+
+    foreign onEvent(fn)
+    foreign onComplete(fn)
+}
+
+class DBones {
+    construct new(skeFile, atlasFile, imgFile) {
+        _init(skeFile, atlasFile, imgFile, "default", null)
+    }
+    construct named(skeFile, atlasFile, imgFile, dataName, armatureName) {
+        _init(skeFile, atlasFile, imgFile, dataName, armatureName)
+    }
+
+    foreign static allocate
+    foreign finalize
+    foreign _init(skeFile, atlasFile, imgFile, dataName, armatureName)
+    foreign loaded
+
+    foreign play(name)
+    foreign playTimes(name, times)
+    foreign fadeIn(name, fadeTime)
+    foreign hasAnimation(name)
+    foreign animationCount
+    foreign animationName(i)
+    foreign currentAnimation
+    foreign timeScale=(v)
+    foreign timeScale
+
+    foreign setPos(x, y)
+    foreign x
+    foreign y
+    foreign setScale(sx, sy)
+    foreign setFlip(fx, fy)
+    foreign color=(c)
+    foreign color
+
+    foreign update(dt)
+    foreign render
+}
+
+class Widget {
+    construct new(x, y, w, h) { _init(x, y, w, h) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _init(x, y, w, h)
+
+    foreign setX(v)
+    foreign setY(v)
+    foreign backgroundColor=(c)
+    foreign addKid(kid)
+    foreign render(x, y)
+    foreign mouseAt(x, y, state)
+    foreign testAt(x, y)
+
+    static mouseDefault { 0 }
+    static mouseDown    { 1 }
+    static mousePassing { 2 }
+    static mouseUp      { 3 }
+
+    /* Override these in a subclass (`class Button is Widget`). */
+    onRender(x, y) { }
+    onOver(x, y) { }
+    onDown() { }
+    onMove(dx, dy) { }
+    onUp(inside) { }
+}

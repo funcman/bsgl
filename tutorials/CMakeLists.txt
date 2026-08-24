@@ -16,6 +16,7 @@ set(BSGL_TUTORIALS
     tutorial07
     tutorial08
     tutorial09
+    tutorial10
 )
 
 # whatever resources are present in res/ are copied next to the
@@ -26,7 +27,8 @@ file(GLOB BSGL_TUT_RES "${CMAKE_CURRENT_SOURCE_DIR}/res/*.bmp"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.jpg"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.ttf"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.atlas"
-                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.json")
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.json"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.wren")
 
 # copy the resources once for all tutorials: with --parallel, per-target
 # POST_BUILD copies race on the same destination files and fail with
@@ -49,6 +51,16 @@ foreach(tut ${BSGL_TUTORIALS})
     add_executable(${tut} ${tut}/main.cpp)
     target_link_libraries(${tut} PRIVATE bsgl)
     add_dependencies(${tut} tutorial_res)
+
+    # per-tutorial Wren scripts (e.g. tutorial10/main.wren)
+    file(GLOB ${tut}_WREN "${CMAKE_CURRENT_SOURCE_DIR}/${tut}/*.wren")
+    if(${tut}_WREN)
+        add_custom_command(TARGET ${tut} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${${tut}_WREN}
+                "$<TARGET_FILE_DIR:${tut}>"
+        )
+    endif()
 
     # run/debug from the executable directory inside Visual Studio,
     # so that the resources are found

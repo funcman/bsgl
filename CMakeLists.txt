@@ -148,6 +148,16 @@ endif()
 add_subdirectory(3rd/wren)
 
 #--- bsgl static library -------------------------------------------------
+# embed src/advance/bsgl.wren as a C string for the wren bindings
+set(BSGL_WREN_INC "${CMAKE_CURRENT_BINARY_DIR}/bsgl.wren.inc")
+add_custom_command(OUTPUT "${BSGL_WREN_INC}"
+    COMMAND ${CMAKE_COMMAND}
+        -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/advance/bsgl.wren
+        -D DST=${BSGL_WREN_INC}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_wren_lib.cmake
+    DEPENDS src/advance/bsgl.wren)
+set_source_files_properties("${BSGL_WREN_INC}" PROPERTIES GENERATED TRUE)
+
 add_library(bsgl STATIC
     src/core/system.cpp
     src/core/config.cpp
@@ -160,8 +170,10 @@ add_library(bsgl STATIC
     src/advance/bsglanim.cpp
     src/advance/bsglspine.cpp
     src/advance/bsgldbones.cpp
+    src/advance/bsglwren.cpp
     src/gui/bsglfont.cpp
     src/gui/bsglwidget.cpp
+    "${BSGL_WREN_INC}"
 )
 
 target_include_directories(bsgl
@@ -169,12 +181,13 @@ target_include_directories(bsgl
         include
     PRIVATE
         src/core
+        "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
 # freetype is PUBLIC: include/bsglfont.h includes <ft2build.h>
 # spine-cpp is PUBLIC: bsglSpine forwards spine types to its users
 # dragonbones is PUBLIC: bsglDBones forwards dragonBones types to its users
-target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2 spine-cpp dragonbones)
+target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2 spine-cpp dragonbones wren)
 
 # image decoders used by graphics.cpp (Texture_Load)
 target_link_libraries(bsgl PRIVATE spng turbojpeg-static)
