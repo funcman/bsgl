@@ -28,17 +28,27 @@ file(GLOB BSGL_TUT_RES "${CMAKE_CURRENT_SOURCE_DIR}/res/*.bmp"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.atlas"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.json")
 
+# copy the resources once for all tutorials: with --parallel, per-target
+# POST_BUILD copies race on the same destination files and fail with
+# "Permission denied" on Windows
+if(BSGL_TUT_RES)
+    add_custom_target(tutorial_res
+        # the directory does not exist yet on a clean build (it is only
+        # created when the first executable is linked)
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${BSGL_TUT_RES}
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>"
+    )
+else()
+    add_custom_target(tutorial_res)
+endif()
+
 foreach(tut ${BSGL_TUTORIALS})
     add_executable(${tut} ${tut}/main.cpp)
     target_link_libraries(${tut} PRIVATE bsgl)
-
-    if(BSGL_TUT_RES)
-        add_custom_command(TARGET ${tut} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${BSGL_TUT_RES}
-                "$<TARGET_FILE_DIR:${tut}>"
-        )
-    endif()
+    add_dependencies(${tut} tutorial_res)
 
     # run/debug from the executable directory inside Visual Studio,
     # so that the resources are found
