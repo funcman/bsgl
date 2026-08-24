@@ -1,0 +1,27 @@
+#=====================================================================
+# CMakeLists.txt for the wren submodule (3rd/wren)
+#
+# This file is NOT part of the upstream repository. It lives in the
+# BSGL repository as scripts/wren-CMakeLists.txt and is copied to
+# 3rd/wren/CMakeLists.txt by scripts/build.ps1 / scripts/build.sh once
+# the git submodules have been initialized (the root CMakeLists.txt
+# also deploys it when cmake is invoked directly).
+#
+# Wren ships no CMake build of its own (it uses premake), so this
+# builds the VM (src/vm) plus the optional modules (src/optional:
+# meta and random) directly from sources.
+#=====================================================================
+cmake_minimum_required(VERSION 3.16)
+
+project(wren LANGUAGES C)
+
+file(GLOB WREN_VM_SOURCES       "${CMAKE_CURRENT_SOURCE_DIR}/src/vm/*.c")
+file(GLOB WREN_OPTIONAL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/optional/wren_opt_*.c")
+
+add_library(wren STATIC ${WREN_VM_SOURCES} ${WREN_OPTIONAL_SOURCES})
+
+target_include_directories(wren
+    PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/vm"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/optional"
+)

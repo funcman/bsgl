@@ -19,7 +19,8 @@ OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/spine-runtimes/spine-cpp/CMakeLis
 OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/DragonBonesCPP/DragonBones/src"
 OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/zlib/CMakeLists.txt"
 OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/libspng/spng/spng.c"
-OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/libjpeg-turbo/CMakeLists.txt")
+OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/libjpeg-turbo/CMakeLists.txt"
+OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/wren/src/vm/wren_vm.c")
     message(FATAL_ERROR
         "git submodules are missing. Run:\n"
         "  git submodule update --init --recursive")
@@ -136,6 +137,15 @@ target_include_directories(turbojpeg-static
 unset(VERSION)
 unset(BUILD)
 unset(PACKAGE_NAME)
+
+# wren: ships no CMake build of its own (premake-based). The build
+# scripts copy scripts/wren-CMakeLists.txt in as its CMakeLists.txt;
+# do the same here so that invoking cmake directly also works.
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/wren/CMakeLists.txt")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/scripts/wren-CMakeLists.txt"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/3rd/wren/CMakeLists.txt" COPYONLY)
+endif()
+add_subdirectory(3rd/wren)
 
 #--- bsgl static library -------------------------------------------------
 add_library(bsgl STATIC

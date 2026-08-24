@@ -24,3 +24,7 @@
 [submodule "3rd/zlib"]
 	path = 3rd/zlib
 	url = https://github.com/madler/zlib
+[submodule "3rd/wren"]
+	path = 3rd/wren
+	url = https://github.com/wren-lang/wren
+	ignore = untracked

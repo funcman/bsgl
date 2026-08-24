@@ -56,6 +56,20 @@ if (Test-Path (Join-Path $dbcDir "DragonBones\src")) {
     }
 }
 
+#--- Deploy the wren CMake script ----------------------------------------
+# wren ships no CMake build of its own; once the submodule is present,
+# copy our script in as 3rd/wren/CMakeLists.txt.
+$wrenDir = Join-Path $Root "3rd\wren"
+$wrenSrc = Join-Path $Root "scripts\wren-CMakeLists.txt"
+$wrenDst = Join-Path $wrenDir "CMakeLists.txt"
+if (Test-Path (Join-Path $wrenDir "src\vm")) {
+    if ((-not (Test-Path $wrenDst)) -or
+        ((Get-FileHash $wrenSrc).Hash -ne (Get-FileHash $wrenDst).Hash)) {
+        Write-Host "==> Deploying 3rd\wren\CMakeLists.txt ..."
+        Copy-Item $wrenSrc $wrenDst -Force
+    }
+}
+
 #--- Find cmake: prefer PATH, then the one bundled with Visual Studio ---
 $cmake = $null
 

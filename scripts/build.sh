@@ -55,6 +55,16 @@ if [ -d "$ROOT/3rd/DragonBonesCPP/DragonBones/src" ]; then
     fi
 fi
 
+# Deploy the wren CMake script
+# wren ships no CMake build of its own; once the submodule is present,
+# copy our script in as 3rd/wren/CMakeLists.txt.
+if [ -d "$ROOT/3rd/wren/src/vm" ]; then
+    if ! cmp -s "$ROOT/scripts/wren-CMakeLists.txt" "$ROOT/3rd/wren/CMakeLists.txt" 2>/dev/null; then
+        echo "==> Deploying 3rd/wren/CMakeLists.txt ..."
+        cp "$ROOT/scripts/wren-CMakeLists.txt" "$ROOT/3rd/wren/CMakeLists.txt"
+    fi
+fi
+
 if ! command -v cmake >/dev/null 2>&1; then
     echo "cmake not found" >&2
     exit 1
