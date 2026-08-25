@@ -182,6 +182,14 @@ struct QuadWrap {
     bsglQuad q;
 };
 
+struct SoundWrap {
+    HEFFECT h;
+};
+
+struct MusicWrap {
+    HMUSIC h;
+};
+
 struct FontWrap {
     bsglFont*   f;
     HTEXTURE    tex;        // scratch texture for Font.render
@@ -414,6 +422,125 @@ static void TexFree(WrenVM*) {
     t->h = 0;
     t->owned = false;
 }
+
+//=====================================================================
+// Sound / Music / Channel
+//=====================================================================
+
+static void SndAllocate(WrenVM* vm) {
+    SoundWrap* s = (SoundWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(SoundWrap));
+    s->h = 0;
+}
+
+static void SndFinalize(void* data) {
+    SoundWrap* s = (SoundWrap*)data;
+    if (s->h) {
+        S->bsgl->Effect_Free(s->h);
+    }
+    s->h = 0;
+}
+
+static void SndLoad(WrenVM*) {
+    SoundWrap* s = (SoundWrap*)wrenGetSlotForeign(S->vm, 0);
+    s->h = S->bsgl->Effect_Load(ArgStr(1));
+    wrenSetSlotBool(S->vm, 0, s->h != 0);
+}
+
+static void SndLoaded(WrenVM*) {
+    SoundWrap* s = (SoundWrap*)wrenGetSlotForeign(S->vm, 0);
+    wrenSetSlotBool(S->vm, 0, s->h != 0);
+}
+
+static void SndPlay(WrenVM*) {
+    SoundWrap* s = (SoundWrap*)wrenGetSlotForeign(S->vm, 0);
+    wrenSetSlotDouble(S->vm, 0, s->h ? S->bsgl->Effect_Play(s->h) : 0);
+}
+
+static void SndSetVol(WrenVM*) {
+    SoundWrap* s = (SoundWrap*)wrenGetSlotForeign(S->vm, 0);
+    if (s->h) S->bsgl->Effect_SetVol(s->h, ArgI(1));
+}
+
+static void SndSetPan(WrenVM*) {
+    SoundWrap* s = (SoundWrap*)wrenGetSlotForeign(S->vm, 0);
+    if (s->h) S->bsgl->Effect_SetPan(s->h, ArgI(1));
+}
+
+static void SndFree(WrenVM*) {
+    SoundWrap* s = (SoundWrap*)wrenGetSlotForeign(S->vm, 0);
+    if (s->h) S->bsgl->Effect_Free(s->h);
+    s->h = 0;
+}
+
+static void MusAllocate(WrenVM* vm) {
+    MusicWrap* m = (MusicWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(MusicWrap));
+    m->h = 0;
+}
+
+static void MusFinalize(void* data) {
+    MusicWrap* m = (MusicWrap*)data;
+    if (m->h) {
+        S->bsgl->Music_Free(m->h);
+    }
+    m->h = 0;
+}
+
+static void MusLoad(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    m->h = S->bsgl->Music_Load(ArgStr(1));
+    wrenSetSlotBool(S->vm, 0, m->h != 0);
+}
+
+static void MusLoaded(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    wrenSetSlotBool(S->vm, 0, m->h != 0);
+}
+
+static void MusPlay(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    wrenSetSlotDouble(S->vm, 0, m->h ? S->bsgl->Music_Play(m->h) : 0);
+}
+
+static void MusStop(WrenVM*)   { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_Stop(m->h); }
+static void MusPause(WrenVM*)  { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_Pause(m->h); }
+static void MusResume(WrenVM*) { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_Resume(m->h); }
+static void MusSetVol(WrenVM*) { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_SetVol(m->h, ArgI(1)); }
+static void MusSetPan(WrenVM*) { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_SetPan(m->h, ArgI(1)); }
+static void MusSetPitch(WrenVM*) { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_SetPitch(m->h, ArgF(1)); }
+static void MusFadeTo(WrenVM*)  { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_FadeTo(m->h, ArgI(1), ArgI(2)); }
+static void MusSlideTo(WrenVM*) { MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0); if (m->h) S->bsgl->Music_SlideTo(m->h, ArgI(1), ArgI(2), ArgI(3), ArgF(4)); }
+
+static void MusGetPos(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    wrenSetSlotDouble(S->vm, 0, m->h ? S->bsgl->Music_GetPos(m->h) : 0);
+}
+
+static void MusSetPos(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    if (m->h) S->bsgl->Music_SetPos(m->h, ArgI(1));
+}
+
+static void MusLength(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    wrenSetSlotDouble(S->vm, 0, m->h ? S->bsgl->Music_GetLength(m->h) : -1);
+}
+
+static void MusFree(WrenVM*) {
+    MusicWrap* m = (MusicWrap*)wrenGetSlotForeign(S->vm, 0);
+    if (m->h) S->bsgl->Music_Free(m->h);
+    m->h = 0;
+}
+
+static void ChnVol(WrenVM*)     { S->bsgl->Channel_SetVolume(ArgI(1), ArgI(2)); }
+static void ChnPan(WrenVM*)     { S->bsgl->Channel_SetPanning(ArgI(1), ArgI(2)); }
+static void ChnPitch(WrenVM*)   { S->bsgl->Channel_SetPitch(ArgI(1), ArgF(2)); }
+static void ChnFadeTo(WrenVM*)  { S->bsgl->Channel_FadeTo(ArgI(1), ArgI(2), ArgI(3)); }
+static void ChnSlideTo(WrenVM*) { S->bsgl->Channel_SlideTo(ArgI(1), ArgI(2), ArgI(3), ArgI(4), ArgF(5)); }
+static void ChnStop(WrenVM*)    { S->bsgl->Channel_Stop(ArgI(1)); }
+static void ChnPause(WrenVM*)   { S->bsgl->Channel_Pause(ArgI(1)); }
+static void ChnResume(WrenVM*)  { S->bsgl->Channel_Resume(ArgI(1)); }
+static void ChnPlaying(WrenVM*) { wrenSetSlotBool(S->vm, 0, S->bsgl->Channel_IsPlaying(ArgI(1))); }
+static void ChnLength(WrenVM*)  { wrenSetSlotDouble(S->vm, 0, S->bsgl->Channel_GetLength(ArgI(1))); }
 
 //=====================================================================
 // Quad
@@ -838,6 +965,45 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
     if (Match(className, isStatic, signature, "Input", true, "mouseX"))             return InpMouseX;
     if (Match(className, isStatic, signature, "Input", true, "mouseY"))             return InpMouseY;
 
+    // --- Sound ------------------------------------------------------
+    if (Match(className, isStatic, signature, "Sound", true, "allocate"))           return SndAllocate;
+    if (Match(className, isStatic, signature, "Sound", false, "_load(_)"))          return SndLoad;
+    if (Match(className, isStatic, signature, "Sound", false, "loaded"))            return SndLoaded;
+    if (Match(className, isStatic, signature, "Sound", false, "play"))              return SndPlay;
+    if (Match(className, isStatic, signature, "Sound", false, "vol=(_)"))           return SndSetVol;
+    if (Match(className, isStatic, signature, "Sound", false, "pan=(_)"))           return SndSetPan;
+    if (Match(className, isStatic, signature, "Sound", false, "free"))              return SndFree;
+
+    // --- Music ------------------------------------------------------
+    if (Match(className, isStatic, signature, "Music", true, "allocate"))           return MusAllocate;
+    if (Match(className, isStatic, signature, "Music", false, "_load(_)"))          return MusLoad;
+    if (Match(className, isStatic, signature, "Music", false, "loaded"))            return MusLoaded;
+    if (Match(className, isStatic, signature, "Music", false, "play"))              return MusPlay;
+    if (Match(className, isStatic, signature, "Music", false, "stop"))              return MusStop;
+    if (Match(className, isStatic, signature, "Music", false, "pause"))             return MusPause;
+    if (Match(className, isStatic, signature, "Music", false, "resume"))            return MusResume;
+    if (Match(className, isStatic, signature, "Music", false, "vol=(_)"))           return MusSetVol;
+    if (Match(className, isStatic, signature, "Music", false, "pan=(_)"))           return MusSetPan;
+    if (Match(className, isStatic, signature, "Music", false, "pitch=(_)"))         return MusSetPitch;
+    if (Match(className, isStatic, signature, "Music", false, "fadeTo(_,_)"))       return MusFadeTo;
+    if (Match(className, isStatic, signature, "Music", false, "slideTo(_,_,_,_)"))  return MusSlideTo;
+    if (Match(className, isStatic, signature, "Music", false, "pos"))               return MusGetPos;
+    if (Match(className, isStatic, signature, "Music", false, "pos=(_)"))           return MusSetPos;
+    if (Match(className, isStatic, signature, "Music", false, "length"))            return MusLength;
+    if (Match(className, isStatic, signature, "Music", false, "free"))              return MusFree;
+
+    // --- Channel ----------------------------------------------------
+    if (Match(className, isStatic, signature, "Channel", true, "vol(_,_)"))         return ChnVol;
+    if (Match(className, isStatic, signature, "Channel", true, "pan(_,_)"))         return ChnPan;
+    if (Match(className, isStatic, signature, "Channel", true, "pitch(_,_)"))       return ChnPitch;
+    if (Match(className, isStatic, signature, "Channel", true, "fadeTo(_,_,_)"))    return ChnFadeTo;
+    if (Match(className, isStatic, signature, "Channel", true, "slideTo(_,_,_,_,_)")) return ChnSlideTo;
+    if (Match(className, isStatic, signature, "Channel", true, "stop(_)"))          return ChnStop;
+    if (Match(className, isStatic, signature, "Channel", true, "pause(_)"))         return ChnPause;
+    if (Match(className, isStatic, signature, "Channel", true, "resume(_)"))        return ChnResume;
+    if (Match(className, isStatic, signature, "Channel", true, "isPlaying(_)"))     return ChnPlaying;
+    if (Match(className, isStatic, signature, "Channel", true, "length(_)"))        return ChnLength;
+
     // --- Gfx --------------------------------------------------------
     if (Match(className, isStatic, signature, "Gfx", true, "beginScene"))           return GfxBegin;
     if (Match(className, isStatic, signature, "Gfx", true, "endScene"))             return GfxEnd;
@@ -994,6 +1160,8 @@ static WrenForeignClassMethods BindForeignClass(WrenVM*,
 
     if (strcmp(className, "Quad") == 0)    { methods.allocate = QuadAllocate;  methods.finalize = QuadFinalize; }
     if (strcmp(className, "Texture") == 0) { methods.allocate = TexAllocate;   methods.finalize = TexFinalize; }
+    if (strcmp(className, "Sound") == 0)  { methods.allocate = SndAllocate;   methods.finalize = SndFinalize; }
+    if (strcmp(className, "Music") == 0)  { methods.allocate = MusAllocate;   methods.finalize = MusFinalize; }
     if (strcmp(className, "Sprite") == 0)  { methods.allocate = SprAllocate;   methods.finalize = SprFinalize; }
     if (strcmp(className, "Animation") == 0) { methods.allocate = AnimAllocate; methods.finalize = AnimFinalize; }
     if (strcmp(className, "Font") == 0)    { methods.allocate = FontAllocate;  methods.finalize = FontFinalize; }

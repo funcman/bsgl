@@ -151,6 +151,54 @@ class Input {
     foreign static mouseY
 }
 
+class Sound {
+    construct new(filename) { _load(filename) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _load(filename)
+    foreign loaded
+    foreign play
+    foreign vol=(v)
+    foreign pan=(p)
+    foreign free
+}
+
+class Music {
+    construct new(filename) { _load(filename) }
+
+    foreign static allocate
+    foreign finalize
+    foreign _load(filename)
+    foreign loaded
+    foreign play
+    foreign stop
+    foreign pause
+    foreign resume
+    foreign vol=(v)
+    foreign pan=(p)
+    foreign pitch=(p)
+    foreign fadeTo(ms, v)
+    foreign slideTo(ms, v, p, pitch)
+    foreign pos
+    foreign pos=(ms)
+    foreign length
+    foreign free
+}
+
+class Channel {
+    foreign static vol(ch, v)
+    foreign static pan(ch, p)
+    foreign static pitch(ch, p)
+    foreign static fadeTo(ch, ms, v)
+    foreign static slideTo(ch, ms, v, p, pitch)
+    foreign static stop(ch)
+    foreign static pause(ch)
+    foreign static resume(ch)
+    foreign static isPlaying(ch)
+    foreign static length(ch)
+}
+
 class Gfx {
     foreign static beginScene
     foreign static endScene

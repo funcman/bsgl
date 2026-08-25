@@ -2,6 +2,9 @@
 	path = 3rd/SDL3
 	url = https://github.com/libsdl-org/SDL.git
 	branch = release-3.2.x
+[submodule "3rd/SDL_mixer"]
+	path = 3rd/SDL_mixer
+	url = https://github.com/libsdl-org/SDL_mixer.git
 [submodule "3rd/tinyxml2"]
 	path = 3rd/tinyxml2
 	url = https://github.com/leethomason/tinyxml2
@@ -14,17 +17,17 @@
 [submodule "3rd/freetype"]
 	path = 3rd/freetype
 	url = https://github.com/freetype/freetype.git
-[submodule "3rd/spine-runtimes"]
-	path = 3rd/spine-runtimes
-	url = https://github.com/EsotericSoftware/spine-runtimes
-[submodule "3rd/DragonBonesCPP"]
-	path = 3rd/DragonBonesCPP
-	url = https://github.com/DragonBones/DragonBonesCPP.git
-	ignore = untracked
 [submodule "3rd/zlib"]
 	path = 3rd/zlib
 	url = https://github.com/madler/zlib
 [submodule "3rd/wren"]
 	path = 3rd/wren
 	url = https://github.com/wren-lang/wren
+	ignore = untracked
+[submodule "3rd/spine-runtimes"]
+	path = 3rd/spine-runtimes
+	url = https://github.com/EsotericSoftware/spine-runtimes
+[submodule "3rd/DragonBonesCPP"]
+	path = 3rd/DragonBonesCPP
+	url = https://github.com/DragonBones/DragonBonesCPP.git
 	ignore = untracked

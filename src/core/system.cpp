@@ -84,6 +84,8 @@ bool CALL BSGL_Impl::System_Initiate() {
     _InitOGL();
     _Resize(nScreenWidth, nScreenHeight);
 
+    _AudioInit();
+
     if (!_GfxInit()) {
         _PostError("Can't initialize OpenGL.");
         System_Shutdown();
@@ -99,6 +101,7 @@ bool CALL BSGL_Impl::System_Initiate() {
 
 void CALL BSGL_Impl::System_Shutdown() {
     System_Log("\nFinishing...");
+    _AudioDone();
     _GfxDone();
 
     if (gl_context) {
@@ -139,6 +142,7 @@ bool CALL BSGL_Impl::System_Start() {
 
     while (isRunning) {
         _PumpEvents();
+        _AudioTick();
 
         time = (float)SDL_GetPerformanceCounter() / freq;
         float _t = time - old_time;
@@ -364,6 +368,7 @@ BSGL_Impl::BSGL_Impl() {
     nPolyMode = 0;
     window = nullptr;
     gl_context = nullptr;
+    audio = nullptr;
     textures = nullptr;
     indexes = nullptr;
     VertArray = nullptr;

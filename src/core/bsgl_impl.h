@@ -27,6 +27,8 @@ struct TextureList {
     struct TextureList* next;
 };
 
+struct AudioState;
+
 /*
 ** Interface implementation
 */
@@ -90,10 +92,58 @@ public:
     virtual int         CALL Control_GetMouseX();
     virtual int         CALL Control_GetMouseY();
 
+    virtual HEFFECT     CALL Effect_Load(char const* filename, DWORD size=0);
+    virtual void        CALL Effect_Free(HEFFECT eff);
+    virtual HCHANNEL    CALL Effect_Play(HEFFECT eff);
+    virtual void        CALL Effect_SetVol(HEFFECT eff, int vol);
+    virtual void        CALL Effect_SetPan(HEFFECT eff, int pan);
+    virtual void        CALL Effect_SetPitch(HEFFECT eff, float pitch);
+
+    virtual void        CALL Channel_SetPanning(HCHANNEL chn, int pan);
+    virtual void        CALL Channel_SetVolume(HCHANNEL chn, int vol);
+    virtual void        CALL Channel_SetPitch(HCHANNEL chn, float pitch);
+    virtual void        CALL Channel_SlideTo(HCHANNEL chn, DWORD time, int vol, int pan, float pitch);
+    virtual void        CALL Channel_FadeTo(HCHANNEL chn, DWORD time, int vol);
+    virtual void        CALL Channel_Stop(HCHANNEL chn);
+    virtual void        CALL Channel_Pause(HCHANNEL chn);
+    virtual void        CALL Channel_Resume(HCHANNEL chn);
+    virtual bool        CALL Channel_IsPlaying(HCHANNEL chn);
+    virtual int         CALL Channel_GetLength(HCHANNEL chn);
+
+    virtual HSTREAM     CALL Stream_Load(char const* filename, DWORD size=0);
+    virtual void        CALL Stream_Free(HSTREAM stream);
+    virtual HCHANNEL    CALL Stream_Play(HSTREAM stream);
+    virtual void        CALL Stream_SetVol(HSTREAM stream, int vol);
+    virtual void        CALL Stream_Rewind(HSTREAM stream);
+    virtual void        CALL Stream_Seek(HSTREAM stream, DWORD position);
+    virtual DWORD       CALL Stream_GetPos(HSTREAM stream);
+    virtual int         CALL Stream_GetLength(HSTREAM stream);
+
+    virtual HMUSIC      CALL Music_Load(char const* filename, DWORD size=0);
+    virtual void        CALL Music_Free(HMUSIC mus);
+    virtual HCHANNEL    CALL Music_Play(HMUSIC mus);
+    virtual void        CALL Music_Stop(HMUSIC mus);
+    virtual void        CALL Music_Pause(HMUSIC mus);
+    virtual void        CALL Music_Resume(HMUSIC mus);
+    virtual void        CALL Music_SetVol(HMUSIC mus, int vol);
+    virtual void        CALL Music_SetPan(HMUSIC mus, int pan);
+    virtual void        CALL Music_SetPitch(HMUSIC mus, float pitch);
+    virtual void        CALL Music_SlideTo(HMUSIC mus, DWORD time, int vol, int pan, float pitch);
+    virtual void        CALL Music_FadeTo(HMUSIC mus, DWORD time, int vol);
+    virtual void        CALL Music_SetPos(HMUSIC mus, DWORD position);
+    virtual DWORD       CALL Music_GetPos(HMUSIC mus);
+    virtual int         CALL Music_GetLength(HMUSIC mus);
+
     static BSGL_Impl*   _Interface_Get();
 
     void                _LoadConfig(char const* filename);
     void                _PostError(char const* error, ...);
+    void                _AudioInit();
+    void                _AudioDone();
+    void                _AudioTick();
+
+    // defined in audio.cpp; opaque here to keep SDL_mixer out of this header
+    AudioState*     audio;
 
 private:
     char szTitle[256];

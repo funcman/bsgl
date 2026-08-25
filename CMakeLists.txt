@@ -32,6 +32,24 @@ set(SDL_STATIC        OFF CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY  OFF CACHE BOOL "" FORCE)
 add_subdirectory(3rd/SDL3 EXCLUDE_FROM_ALL)
 
+# SDL_mixer: static library, lean decoder set (WAV/MP3/FLAC/Vorbis built-in,
+# MOD via vendored libxmp)
+set(SDLMIXER_VENDORED      ON  CACHE BOOL "" FORCE)
+set(SDLMIXER_INSTALL       OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_INSTALL_CPACK OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_INSTALL_MAN   OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_TESTS         OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_EXAMPLES      OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_GME           OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_MIDI          OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_OPUS          OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_WAVPACK       OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_FLAC_LIBFLAC  OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_MP3_MPG123    OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE BOOL "" FORCE)
+set(SDLMIXER_VORBIS_TREMOR OFF CACHE BOOL "" FORCE)
+add_subdirectory(3rd/SDL_mixer EXCLUDE_FROM_ALL)
+
 # freetype: static library, minimal feature set (keep the build lean)
 set(FT_DISABLE_ZLIB    TRUE CACHE BOOL "" FORCE)
 set(FT_DISABLE_BZIP2   TRUE CACHE BOOL "" FORCE)
@@ -163,6 +181,7 @@ add_library(bsgl STATIC
     src/core/config.cpp
     src/core/graphics.cpp
     src/core/control.cpp
+    src/core/audio.cpp
     src/core/timer.cpp
     src/core/random.cpp
     src/advance/bsglrect.cpp
@@ -188,6 +207,9 @@ target_include_directories(bsgl
 # spine-cpp is PUBLIC: bsglSpine forwards spine types to its users
 # dragonbones is PUBLIC: bsglDBones forwards dragonBones types to its users
 target_link_libraries(bsgl PUBLIC SDL3::SDL3 freetype tinyxml2::tinyxml2 spine-cpp dragonbones wren)
+
+# audio mixer used by audio.cpp (Effect/Channel/Stream/Music)
+target_link_libraries(bsgl PRIVATE SDL3_mixer::SDL3_mixer)
 
 # image decoders used by graphics.cpp (Texture_Load)
 target_link_libraries(bsgl PRIVATE spng turbojpeg-static)

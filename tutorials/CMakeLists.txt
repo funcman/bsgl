@@ -17,6 +17,7 @@ set(BSGL_TUTORIALS
     tutorial08
     tutorial09
     tutorial10
+    tutorial11
 )
 
 # whatever resources are present in res/ are copied next to the
@@ -28,7 +29,9 @@ file(GLOB BSGL_TUT_RES "${CMAKE_CURRENT_SOURCE_DIR}/res/*.bmp"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.ttf"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.atlas"
                        "${CMAKE_CURRENT_SOURCE_DIR}/res/*.json"
-                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.wren")
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.wren"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.wav"
+                       "${CMAKE_CURRENT_SOURCE_DIR}/res/*.mod")
 
 # copy the resources once for all tutorials: with --parallel, per-target
 # POST_BUILD copies race on the same destination files and fail with

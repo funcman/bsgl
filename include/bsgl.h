@@ -295,6 +295,48 @@ public:
     virtual bool        CALL Control_IsUp(int key) = 0;
     virtual int         CALL Control_GetMouseX() = 0;
     virtual int         CALL Control_GetMouseY() = 0;
+
+    virtual HEFFECT     CALL Effect_Load(char const* filename, DWORD size=0) = 0;
+    virtual void        CALL Effect_Free(HEFFECT eff) = 0;
+    virtual HCHANNEL    CALL Effect_Play(HEFFECT eff) = 0;
+    virtual void        CALL Effect_SetVol(HEFFECT eff, int vol) = 0;
+    virtual void        CALL Effect_SetPan(HEFFECT eff, int pan) = 0;
+    virtual void        CALL Effect_SetPitch(HEFFECT eff, float pitch) = 0;
+
+    virtual void        CALL Channel_SetPanning(HCHANNEL chn, int pan) = 0;
+    virtual void        CALL Channel_SetVolume(HCHANNEL chn, int vol) = 0;
+    virtual void        CALL Channel_SetPitch(HCHANNEL chn, float pitch) = 0;
+    virtual void        CALL Channel_SlideTo(HCHANNEL chn, DWORD time, int vol, int pan, float pitch) = 0;
+    virtual void        CALL Channel_FadeTo(HCHANNEL chn, DWORD time, int vol) = 0;
+    virtual void        CALL Channel_Stop(HCHANNEL chn) = 0;
+    virtual void        CALL Channel_Pause(HCHANNEL chn) = 0;
+    virtual void        CALL Channel_Resume(HCHANNEL chn) = 0;
+    virtual bool        CALL Channel_IsPlaying(HCHANNEL chn) = 0;
+    virtual int         CALL Channel_GetLength(HCHANNEL chn) = 0;
+
+    virtual HSTREAM     CALL Stream_Load(char const* filename, DWORD size=0) = 0;
+    virtual void        CALL Stream_Free(HSTREAM stream) = 0;
+    virtual HCHANNEL    CALL Stream_Play(HSTREAM stream) = 0;
+    virtual void        CALL Stream_SetVol(HSTREAM stream, int vol) = 0;
+    virtual void        CALL Stream_Rewind(HSTREAM stream) = 0;
+    virtual void        CALL Stream_Seek(HSTREAM stream, DWORD position) = 0;
+    virtual DWORD       CALL Stream_GetPos(HSTREAM stream) = 0;
+    virtual int         CALL Stream_GetLength(HSTREAM stream) = 0;
+
+    virtual HMUSIC      CALL Music_Load(char const* filename, DWORD size=0) = 0;
+    virtual void        CALL Music_Free(HMUSIC mus) = 0;
+    virtual HCHANNEL    CALL Music_Play(HMUSIC mus) = 0;
+    virtual void        CALL Music_Stop(HMUSIC mus) = 0;
+    virtual void        CALL Music_Pause(HMUSIC mus) = 0;
+    virtual void        CALL Music_Resume(HMUSIC mus) = 0;
+    virtual void        CALL Music_SetVol(HMUSIC mus, int vol) = 0;
+    virtual void        CALL Music_SetPan(HMUSIC mus, int pan) = 0;
+    virtual void        CALL Music_SetPitch(HMUSIC mus, float pitch) = 0;
+    virtual void        CALL Music_SlideTo(HMUSIC mus, DWORD time, int vol, int pan, float pitch) = 0;
+    virtual void        CALL Music_FadeTo(HMUSIC mus, DWORD time, int vol) = 0;
+    virtual void        CALL Music_SetPos(HMUSIC mus, DWORD position) = 0;
+    virtual DWORD       CALL Music_GetPos(HMUSIC mus) = 0;
+    virtual int         CALL Music_GetLength(HMUSIC mus) = 0;
 };
 
 extern "C" { EXPORT BSGL* CALL bsglCreate(int ver); }
