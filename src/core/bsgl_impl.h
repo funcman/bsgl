@@ -158,7 +158,7 @@ private:
     char szCfgString[256];
 
     TextureList*    textures;
-    GLubyte*        indexes;
+    GLushort*       indexes;
     bsglVertex*     VertArray;
 
     int         nPrim;

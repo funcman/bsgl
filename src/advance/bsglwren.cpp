@@ -109,7 +109,7 @@ static void Defer(WrenHandle* recv, WrenHandle* method,
     dc.d0 = d0;
     dc.d1 = d1;
     dc.nargs = nargs;
-    dc.str = str ? _strdup(str) : nullptr;
+    dc.str = str ? strdup(str) : nullptr;
     dc.bflag = bflag;
     dc.useStr = str != nullptr;
     dc.useBool = false;
@@ -927,17 +927,17 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
     }
 
     // --- System -----------------------------------------------------
-    if (Match(className, isStatic, signature, "System", true, "title=(_)"))         return SysSetTitle;
-    if (Match(className, isStatic, signature, "System", true, "logFile=(_)"))       return SysSetLogFile;
-    if (Match(className, isStatic, signature, "System", true, "cfgFile=(_)"))       return SysSetCfgFile;
-    if (Match(className, isStatic, signature, "System", true, "windowed=(_)"))      return SysSetWindowed;
-    if (Match(className, isStatic, signature, "System", true, "width=(_)"))         return SysSetWidth;
-    if (Match(className, isStatic, signature, "System", true, "height=(_)"))        return SysSetHeight;
-    if (Match(className, isStatic, signature, "System", true, "width"))             return SysGetWidth;
-    if (Match(className, isStatic, signature, "System", true, "height"))            return SysGetHeight;
-    if (Match(className, isStatic, signature, "System", true, "log(_)"))            return SysLog;
-    if (Match(className, isStatic, signature, "System", true, "quit"))              return SysQuit;
-    if (Match(className, isStatic, signature, "System", true, "errorMessage"))      return SysErrMsg;
+    if (Match(className, isStatic, signature, "Sys", true, "title=(_)"))         return SysSetTitle;
+    if (Match(className, isStatic, signature, "Sys", true, "logFile=(_)"))       return SysSetLogFile;
+    if (Match(className, isStatic, signature, "Sys", true, "cfgFile=(_)"))       return SysSetCfgFile;
+    if (Match(className, isStatic, signature, "Sys", true, "windowed=(_)"))      return SysSetWindowed;
+    if (Match(className, isStatic, signature, "Sys", true, "width=(_)"))         return SysSetWidth;
+    if (Match(className, isStatic, signature, "Sys", true, "height=(_)"))        return SysSetHeight;
+    if (Match(className, isStatic, signature, "Sys", true, "width"))             return SysGetWidth;
+    if (Match(className, isStatic, signature, "Sys", true, "height"))            return SysGetHeight;
+    if (Match(className, isStatic, signature, "Sys", true, "log(_)"))            return SysLog;
+    if (Match(className, isStatic, signature, "Sys", true, "quit"))              return SysQuit;
+    if (Match(className, isStatic, signature, "Sys", true, "errorMessage"))      return SysErrMsg;
 
     // --- Config -----------------------------------------------------
     if (Match(className, isStatic, signature, "Config", true, "getInt(_,_,_)"))     return CfgGetInt;
@@ -967,7 +967,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Sound ------------------------------------------------------
     if (Match(className, isStatic, signature, "Sound", true, "allocate"))           return SndAllocate;
-    if (Match(className, isStatic, signature, "Sound", false, "_load(_)"))          return SndLoad;
+    if (Match(className, isStatic, signature, "Sound", false, "load_(_)"))          return SndLoad;
     if (Match(className, isStatic, signature, "Sound", false, "loaded"))            return SndLoaded;
     if (Match(className, isStatic, signature, "Sound", false, "play"))              return SndPlay;
     if (Match(className, isStatic, signature, "Sound", false, "vol=(_)"))           return SndSetVol;
@@ -976,7 +976,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Music ------------------------------------------------------
     if (Match(className, isStatic, signature, "Music", true, "allocate"))           return MusAllocate;
-    if (Match(className, isStatic, signature, "Music", false, "_load(_)"))          return MusLoad;
+    if (Match(className, isStatic, signature, "Music", false, "load_(_)"))          return MusLoad;
     if (Match(className, isStatic, signature, "Music", false, "loaded"))            return MusLoaded;
     if (Match(className, isStatic, signature, "Music", false, "play"))              return MusPlay;
     if (Match(className, isStatic, signature, "Music", false, "stop"))              return MusStop;
@@ -1020,8 +1020,8 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Texture ----------------------------------------------------
     if (Match(className, isStatic, signature, "Texture", true, "allocate"))         return TexAllocate;
-    if (Match(className, isStatic, signature, "Texture", false, "_load(_)"))        return TexLoad;
-    if (Match(className, isStatic, signature, "Texture", false, "_create(_,_)"))    return TexCreate;
+    if (Match(className, isStatic, signature, "Texture", false, "load_(_)"))        return TexLoad;
+    if (Match(className, isStatic, signature, "Texture", false, "create_(_,_)"))    return TexCreate;
     if (Match(className, isStatic, signature, "Texture", false, "loaded"))          return TexLoaded;
     if (Match(className, isStatic, signature, "Texture", false, "width"))           return TexWidth;
     if (Match(className, isStatic, signature, "Texture", false, "height"))          return TexHeight;
@@ -1029,7 +1029,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Sprite -----------------------------------------------------
     if (Match(className, isStatic, signature, "Sprite", true, "allocate"))          return SprAllocate;
-    if (Match(className, isStatic, signature, "Sprite", false, "_init(_,_,_,_,_)")) return SprInit;
+    if (Match(className, isStatic, signature, "Sprite", false, "init_(_,_,_,_,_)")) return SprInit;
     if (Match(className, isStatic, signature, "Sprite", false, "render(_,_)"))      return SprRender;
     if (Match(className, isStatic, signature, "Sprite", false, "renderEx(_,_,_)"))  return SprRenderEx3;
     if (Match(className, isStatic, signature, "Sprite", false, "renderEx(_,_,_,_,_)")) return SprRenderEx5;
@@ -1047,7 +1047,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Animation --------------------------------------------------
     if (Match(className, isStatic, signature, "Animation", true, "allocate"))       return AnimAllocate;
-    if (Match(className, isStatic, signature, "Animation", false, "_init(_,_,_,_,_,_,_)")) return AnimInit;
+    if (Match(className, isStatic, signature, "Animation", false, "init_(_,_,_,_,_,_,_)")) return AnimInit;
     if (Match(className, isStatic, signature, "Animation", false, "play"))          return AnimPlay;
     if (Match(className, isStatic, signature, "Animation", false, "stop"))          return AnimStop;
     if (Match(className, isStatic, signature, "Animation", false, "resume"))        return AnimResume;
@@ -1075,13 +1075,13 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Font -------------------------------------------------------
     if (Match(className, isStatic, signature, "Font", true, "allocate"))            return FontAllocate;
-    if (Match(className, isStatic, signature, "Font", false, "_init(_,_)"))         return FontInit;
+    if (Match(className, isStatic, signature, "Font", false, "init_(_,_)"))         return FontInit;
     if (Match(className, isStatic, signature, "Font", false, "loaded"))             return FontLoaded;
     if (Match(className, isStatic, signature, "Font", false, "render(_,_,_,_)"))    return FontRender;
 
     // --- Spine ------------------------------------------------------
     if (Match(className, isStatic, signature, "Spine", true, "allocate"))           return SpineAllocate;
-    if (Match(className, isStatic, signature, "Spine", false, "_init(_,_)"))        return SpineInit;
+    if (Match(className, isStatic, signature, "Spine", false, "init_(_,_)"))        return SpineInit;
     if (Match(className, isStatic, signature, "Spine", false, "loaded"))            return SpineLoaded;
     if (Match(className, isStatic, signature, "Spine", false, "setAnimation(_,_,_)"))  return SpineSetAnim;
     if (Match(className, isStatic, signature, "Spine", false, "addAnimation(_,_,_,_)")) return SpineAddAnim;
@@ -1111,7 +1111,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- DBones -----------------------------------------------------
     if (Match(className, isStatic, signature, "DBones", true, "allocate"))          return DBAllocate;
-    if (Match(className, isStatic, signature, "DBones", false, "_init(_,_,_,_,_)")) return DBInit;
+    if (Match(className, isStatic, signature, "DBones", false, "init_(_,_,_,_,_)")) return DBInit;
     if (Match(className, isStatic, signature, "DBones", false, "loaded"))           return DBLoaded;
     if (Match(className, isStatic, signature, "DBones", false, "play(_)"))          return DBPlay;
     if (Match(className, isStatic, signature, "DBones", false, "playTimes(_,_)"))   return DBPlayTimes;
@@ -1135,7 +1135,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Widget -----------------------------------------------------
     if (Match(className, isStatic, signature, "Widget", true, "allocate"))          return WidAllocate;
-    if (Match(className, isStatic, signature, "Widget", false, "_init(_,_,_,_)"))   return WidInit;
+    if (Match(className, isStatic, signature, "Widget", false, "init_(_,_,_,_)"))   return WidInit;
     if (Match(className, isStatic, signature, "Widget", false, "setX(_)"))          return WidSetX;
     if (Match(className, isStatic, signature, "Widget", false, "setY(_)"))          return WidSetY;
     if (Match(className, isStatic, signature, "Widget", false, "backgroundColor=(_)")) return WidSetBg;
@@ -1190,7 +1190,7 @@ static void ErrorFn(WrenVM*, WrenErrorType type,
     if (type == WREN_ERROR_STACK_TRACE) {
         S->bsgl->System_Log("wren: %s: %s:%d", typeName, module ? module : "?", line);
     } else {
-        _snprintf(S->err, sizeof(S->err), "%s error [%s:%d]: %s",
+        snprintf(S->err, sizeof(S->err), "%s error [%s:%d]: %s",
                   typeName, module ? module : "?", line, message ? message : "?");
         S->bsgl->System_Log("wren: %s", S->err);
     }
@@ -1215,7 +1215,7 @@ static WrenLoadModuleResult LoadModuleFn(WrenVM*, const char* name) {
     } else {
         // user modules: load "<name>.wren" from disk next to the executable
         char path[512];
-        _snprintf(path, sizeof(path), "%s.wren", name);
+        snprintf(path, sizeof(path), "%s.wren", name);
         FILE* f = fopen(path, "rb");
         if (f) {
             fseek(f, 0, SEEK_END);
@@ -1322,7 +1322,7 @@ bool bsglWren::Run(char const* scriptFile) {
     //--- 1. run the script top-level -------------------------------------
     char* source = ReadWholeFile(scriptFile);
     if (!source) {
-        _snprintf(I->err, sizeof(I->err), "cannot open script '%s'", scriptFile);
+        snprintf(I->err, sizeof(I->err), "cannot open script '%s'", scriptFile);
         I->bsgl->System_Log("bsglWren: %s", I->err);
         return false;
     }
@@ -1360,7 +1360,7 @@ bool bsglWren::Run(char const* scriptFile) {
     //--- 3. fetch the global `main` --------------------------------------
     wrenEnsureSlots(I->vm, 1);
     if (!wrenHasVariable(I->vm, "main", "main")) {
-        _snprintf(I->err, sizeof(I->err),
+        snprintf(I->err, sizeof(I->err),
                   "script must define a global 'var main = Main.new()' "
                   "with init()/update(dt)/render()");
         I->bsgl->System_Log("bsglWren: %s", I->err);
@@ -1371,7 +1371,7 @@ bool bsglWren::Run(char const* scriptFile) {
 
     //--- 4. initiate ------------------------------------------------------
     if (!I->bsgl->System_Initiate()) {
-        _snprintf(I->err, sizeof(I->err), "System_Initiate: %s",
+        snprintf(I->err, sizeof(I->err), "System_Initiate: %s",
                   I->bsgl->System_GetErrorMessage());
         I->bsgl->System_Log("bsglWren: %s", I->err);
         return false;
@@ -1381,7 +1381,7 @@ bool bsglWren::Run(char const* scriptFile) {
     wrenEnsureSlots(I->vm, 1);
     wrenSetSlotHandle(I->vm, 0, I->mainHandle);
     if (wrenCall(I->vm, I->initHandle) != WREN_RESULT_SUCCESS) {
-        _snprintf(I->err, sizeof(I->err),
+        snprintf(I->err, sizeof(I->err),
                   "main.init() failed (does the main object define init()?)");
         I->bsgl->System_Log("bsglWren: %s", I->err);
         I->bsgl->System_Shutdown();

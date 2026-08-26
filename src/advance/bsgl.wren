@@ -1,10 +1,10 @@
-##
-## bsgl embedded script library (module "bsgl")
-##
-## Injected by bsglWren as the "bsgl" module. Foreign methods are
-## implemented in src/advance/bsglwren.cpp; everything below them is
-## plain Wren sugar on top of the raw bindings.
-##
+//
+// bsgl embedded script library (module "bsgl")
+//
+// Injected by bsglWren as the "bsgl" module. Foreign methods are
+// implemented in src/advance/bsglwren.cpp; everything below them is
+// plain Wren sugar on top of the raw bindings.
+//
 
 class Blend {
     static colorMul    { 0 }
@@ -27,20 +27,54 @@ class Color {
 class Key {
     static mouseL    { 0 }
     static mouseR    { 1 }
-    static a { 65 }  static b { 66 }  static c { 67 }  static d { 68 }
-    static e { 69 }  static f { 70 }  static g { 71 }  static h { 72 }
-    static i { 73 }  static j { 74 }  static k { 75 }  static l { 76 }
-    static m { 77 }  static n { 78 }  static o { 79 }  static p { 80 }
-    static q { 81 }  static r { 82 }  static s { 83 }  static t { 84 }
-    static u { 85 }  static v { 86 }  static w { 87 }  static x { 88 }
-    static y { 89 }  static z { 90 }
-    static d0 { 110 } static d1 { 101 } static d2 { 102 } static d3 { 103 }
-    static d4 { 104 } static d5 { 105 } static d6 { 106 } static d7 { 107 }
-    static d8 { 108 } static d9 { 109 }
-    static f1 { 121 }  static f2 { 122 }  static f3 { 123 }
-    static f4 { 124 }  static f5 { 125 }  static f6 { 126 }
-    static f7 { 127 }  static f8 { 128 }  static f9 { 129 }
-    static f10 { 130 } static f11 { 131 } static f12 { 132 }
+    static a { 65 }
+    static b { 66 }
+    static c { 67 }
+    static d { 68 }
+    static e { 69 }
+    static f { 70 }
+    static g { 71 }
+    static h { 72 }
+    static i { 73 }
+    static j { 74 }
+    static k { 75 }
+    static l { 76 }
+    static m { 77 }
+    static n { 78 }
+    static o { 79 }
+    static p { 80 }
+    static q { 81 }
+    static r { 82 }
+    static s { 83 }
+    static t { 84 }
+    static u { 85 }
+    static v { 86 }
+    static w { 87 }
+    static x { 88 }
+    static y { 89 }
+    static z { 90 }
+    static d0 { 110 }
+    static d1 { 101 }
+    static d2 { 102 }
+    static d3 { 103 }
+    static d4 { 104 }
+    static d5 { 105 }
+    static d6 { 106 }
+    static d7 { 107 }
+    static d8 { 108 }
+    static d9 { 109 }
+    static f1 { 121 }
+    static f2 { 122 }
+    static f3 { 123 }
+    static f4 { 124 }
+    static f5 { 125 }
+    static f6 { 126 }
+    static f7 { 127 }
+    static f8 { 128 }
+    static f9 { 129 }
+    static f10 { 130 }
+    static f11 { 131 }
+    static f12 { 132 }
     static esc      { 160 }
     static tab      { 161 }
     static capsLock { 162 }
@@ -72,24 +106,44 @@ class Anim {
     static pingpongLoop { 6 }
 }
 
-## Axis-aligned rectangle, mirrors bsglRect
+// Axis-aligned rectangle, mirrors bsglRect
 class Rect {
     construct new(x1, y1, x2, y2) {
-        _x1 = x1 _y1 = y1 _x2 = x2 _y2 = y2
+        _x1 = x1
+        _y1 = y1
+        _x2 = x2
+        _y2 = y2
         _clean = false
     }
 
-    x1 { _x1 } y1 { _y1 } x2 { _x2 } y2 { _y2 }
+    x1 { _x1 }
+    y1 { _y1 }
+    x2 { _x2 }
+    y2 { _y2 }
 
-    clear() { _x1 = 0 _y1 = 0 _x2 = 0 _y2 = 0 _clean = true }
+    clear() {
+        _x1 = 0
+        _y1 = 0
+        _x2 = 0
+        _y2 = 0
+        _clean = true
+    }
     isClean { _clean }
 
     set(x1, y1, x2, y2) {
-        _x1 = x1 _y1 = y1 _x2 = x2 _y2 = y2 _clean = false
+        _x1 = x1
+        _y1 = y1
+        _x2 = x2
+        _y2 = y2
+        _clean = false
     }
 
     setRadius(x, y, r) {
-        _x1 = x - r _y1 = y - r _x2 = x + r _y2 = y + r _clean = false
+        _x1 = x - r
+        _y1 = y - r
+        _x2 = x + r
+        _y2 = y + r
+        _clean = false
     }
 
     encapsulate(x, y) {
@@ -107,7 +161,7 @@ class Rect {
     }
 }
 
-class System {
+class Sys {
     foreign static title=(v)
     foreign static logFile=(v)
     foreign static cfgFile=(v)
@@ -151,12 +205,10 @@ class Input {
     foreign static mouseY
 }
 
-class Sound {
-    construct new(filename) { _load(filename) }
+foreign class Sound {
+    construct new(filename) { load_(filename) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _load(filename)
+    foreign load_(filename)
     foreign loaded
     foreign play
     foreign vol=(v)
@@ -164,12 +216,10 @@ class Sound {
     foreign free
 }
 
-class Music {
-    construct new(filename) { _load(filename) }
+foreign class Music {
+    construct new(filename) { load_(filename) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _load(filename)
+    foreign load_(filename)
     foreign loaded
     foreign play
     foreign stop
@@ -219,36 +269,30 @@ class Gfx {
     }
 }
 
-class Quad {
+foreign class Quad {
     construct new() { }
 
-    foreign static allocate
-    foreign finalize
     foreign setTexture(texture)
     foreign blend=(b)
     foreign setVertex(i, tx, ty, x, y, z, color)
 }
 
-class Texture {
-    construct new(filename) { _load(filename) }
-    construct blank(w, h)   { _create(w, h) }
+foreign class Texture {
+    construct new(filename) { load_(filename) }
+    construct blank(w, h)   { create_(w, h) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _load(filename)
-    foreign _create(w, h)
+    foreign load_(filename)
+    foreign create_(w, h)
     foreign loaded
     foreign width
     foreign height
     foreign free
 }
 
-class Sprite {
-    construct new(texture, x, y, w, h) { _init(texture, x, y, w, h) }
+foreign class Sprite {
+    construct new(texture, x, y, w, h) { init_(texture, x, y, w, h) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _init(texture, x, y, w, h)
+    foreign init_(texture, x, y, w, h)
 
     foreign render(x, y)
     foreign renderEx(x, y, rot)
@@ -268,14 +312,12 @@ class Sprite {
     foreign height
 }
 
-class Animation {
+foreign class Animation {
     construct new(texture, nframes, fps, x, y, w, h) {
-        _init(texture, nframes, fps, x, y, w, h)
+        init_(texture, nframes, fps, x, y, w, h)
     }
 
-    foreign static allocate
-    foreign finalize
-    foreign _init(texture, nframes, fps, x, y, w, h)
+    foreign init_(texture, nframes, fps, x, y, w, h)
 
     foreign play
     foreign stop
@@ -306,22 +348,18 @@ class Animation {
     foreign height
 }
 
-class Font {
-    construct new(filename, size) { _init(filename, size) }
+foreign class Font {
+    construct new(filename, size) { init_(filename, size) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _init(filename, size)
+    foreign init_(filename, size)
     foreign loaded
     foreign render(x, y, text, color)
 }
 
-class Spine {
-    construct new(skeletonFile, atlasFile) { _init(skeletonFile, atlasFile) }
+foreign class Spine {
+    construct new(skeletonFile, atlasFile) { init_(skeletonFile, atlasFile) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _init(skeletonFile, atlasFile)
+    foreign init_(skeletonFile, atlasFile)
     foreign loaded
 
     foreign setAnimation(track, name, loop)
@@ -354,17 +392,15 @@ class Spine {
     foreign onComplete(fn)
 }
 
-class DBones {
+foreign class DBones {
     construct new(skeFile, atlasFile, imgFile) {
-        _init(skeFile, atlasFile, imgFile, "default", null)
+        init_(skeFile, atlasFile, imgFile, "default", null)
     }
     construct named(skeFile, atlasFile, imgFile, dataName, armatureName) {
-        _init(skeFile, atlasFile, imgFile, dataName, armatureName)
+        init_(skeFile, atlasFile, imgFile, dataName, armatureName)
     }
 
-    foreign static allocate
-    foreign finalize
-    foreign _init(skeFile, atlasFile, imgFile, dataName, armatureName)
+    foreign init_(skeFile, atlasFile, imgFile, dataName, armatureName)
     foreign loaded
 
     foreign play(name)
@@ -389,12 +425,10 @@ class DBones {
     foreign render
 }
 
-class Widget {
-    construct new(x, y, w, h) { _init(x, y, w, h) }
+foreign class Widget {
+    construct new(x, y, w, h) { init_(x, y, w, h) }
 
-    foreign static allocate
-    foreign finalize
-    foreign _init(x, y, w, h)
+    foreign init_(x, y, w, h)
 
     foreign setX(v)
     foreign setY(v)

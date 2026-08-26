@@ -47,8 +47,9 @@ static bool _MatchExt(char const* filename, char const* ext) {
 }
 
 void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
-    glClearColor((GLfloat)GETR(color), (GLfloat)GETG(color),
-                 (GLfloat)GETB(color), (GLfloat)GETA(color));
+    // glClearColor expects normalized 0..1 floats; GETR/... yield 0..255
+    glClearColor((GLfloat)GETR(color)/255.0f, (GLfloat)GETG(color)/255.0f,
+                 (GLfloat)GETB(color)/255.0f, (GLfloat)GETA(color)/255.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
@@ -366,8 +367,8 @@ void CALL BSGL_Impl::Gfx_SetTransform(float x, float y, float dx, float dy, floa
 }
 
 bool BSGL_Impl::_GfxInit() {
-    GLubyte* iptr = indexes = new GLubyte[VERTEX_BUFFER_SIZE*6/4];
-    GLubyte n = 0;
+    GLushort* iptr = indexes = new GLushort[VERTEX_BUFFER_SIZE*6/4];
+    GLushort n = 0;
     for( int i=0; i<VERTEX_BUFFER_SIZE/4; ++i ) {
         *iptr++ = n;
         *iptr++ = n+1;
@@ -410,13 +411,29 @@ void BSGL_Impl::_render_batch(bool bEndScene) {
         case BSGLPRIM_LINES:
             break;
         case BSGLPRIM_TRIPLES:
-            glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
-            glDrawArrays(GL_TRIANGLES, 0, nPrim*BSGLPRIM_TRIPLES);//remember to test
+        case BSGLPRIM_QUADS: {
+            // Re-bind the batch texture: never trust the implicit GL
+            // binding, other code paths (Texture_LoadData/Update/...)
+            // bind textures behind the batch renderer's back.
+            glBindTexture(GL_TEXTURE_2D,
+                          CurTexture ? *(GLuint*)CurTexture : 0);
+            GLsizei stride = sizeof(bsglVertex);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glVertexPointer(3, GL_FLOAT, stride, &VertArray[0].x);
+            glColorPointer(4, GL_UNSIGNED_BYTE, stride, &VertArray[0].red);
+            glTexCoordPointer(2, GL_FLOAT, stride, &VertArray[0].tx);
+            if (CurPrimType == BSGLPRIM_TRIPLES) {
+                glDrawArrays(GL_TRIANGLES, 0, nPrim*BSGLPRIM_TRIPLES);
+            } else {
+                glDrawElements(GL_TRIANGLES, nPrim*6, GL_UNSIGNED_SHORT, indexes);
+            }
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             break;
-        case BSGLPRIM_QUADS:
-            glInterleavedArrays(GL_T2F_C4UB_V3F, 0, VertArray);
-            glDrawElements(GL_TRIANGLES, nPrim*6, GL_UNSIGNED_BYTE, indexes);
-            break;
+        }
         default:
             break;
         }

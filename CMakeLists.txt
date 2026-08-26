@@ -8,9 +8,12 @@ project(bsgl LANGUAGES C CXX)
 
 #--- Output layout: build/bin/<Config>, build/lib/<Config> -------------
 # (must precede any add_subdirectory/add_library to take effect)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+# The $<CONFIG> suffix unifies single-config (Makefile/Ninja: appended
+# from CMAKE_BUILD_TYPE) and multi-config (Visual Studio) generators, so
+# binaries, tutorials and copied resources always land in bin/<Config>.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>")
 
 #--- Third-party dependencies (git submodules under 3rd/) --------------
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/3rd/SDL3/CMakeLists.txt"

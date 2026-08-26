@@ -7,8 +7,7 @@
 // update(dt) (logic; return true to quit) and render().
 //
 
-import "bsgl" for System, Timer, Input, Key, Color, Anim, Gfx
-import "bsgl" for Texture, Sprite, Animation, Font, Spine, DBones
+import "bsgl" for Sys, Timer, Input, Key, Color, Anim, Gfx, Texture, Sprite, Animation, Font, Spine, DBones
 
 class Main {
     construct new() {
@@ -28,10 +27,10 @@ class Main {
             _mushroom = null
         }
 
-        // frame animation (6 frames of 64x64, 12 fps)
+        // frame animation (6 frames of 48x48, 12 fps)
         var animTex = Texture.new("anim.bmp")
         if (animTex.loaded) {
-            _anim = Animation.new(animTex, 6, 12, 0, 0, 64, 64)
+            _anim = Animation.new(animTex, 6, 12, 0, 0, 48, 48)
             _anim.setMode(Anim.loop)
             _anim.setHotSpot(32, 32)
             _anim.play
@@ -92,9 +91,9 @@ class Main {
     }
 }
 
-System.title = "BSGL Tutorial 10 - Wren scripting"
-System.windowed = true
-System.width = 800
-System.height = 600
+Sys.title = "BSGL Tutorial 10 - Wren scripting"
+Sys.windowed = true
+Sys.width = 800
+Sys.height = 600
 
 var main = Main.new()

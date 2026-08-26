@@ -78,4 +78,5 @@ cmake --build "$BUILD" --parallel
 
 echo ""
 echo "==> Build complete"
-echo "    Binaries:  $BUILD/bin"
+echo "    Binaries:  $BUILD/bin/$CONFIG"
+echo "    Libraries: $BUILD/lib/$CONFIG"

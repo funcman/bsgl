@@ -38,13 +38,14 @@ file(GLOB BSGL_TUT_RES "${CMAKE_CURRENT_SOURCE_DIR}/res/*.bmp"
 # "Permission denied" on Windows
 if(BSGL_TUT_RES)
     add_custom_target(tutorial_res
-        # the directory does not exist yet on a clean build (it is only
-        # created when the first executable is linked)
+        # CMAKE_RUNTIME_OUTPUT_DIRECTORY already carries the $<CONFIG>
+        # suffix (set in the top-level CMakeLists), so this lands next
+        # to the executables on every platform and generator
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>"
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${BSGL_TUT_RES}
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>"
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
     )
 else()
     add_custom_target(tutorial_res)
