@@ -95,7 +95,7 @@ void BSGL_Impl::_AudioInit() {
     spec.format = SDL_AUDIO_F32;
     spec.channels = 2;
 
-    audio->mixer = MIX_CreateMixer(&spec);
+    audio->mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec);
     if (!audio->mixer) {
         _PostError("Can't create the audio mixer: %s", SDL_GetError());
     }
