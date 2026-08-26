@@ -172,14 +172,17 @@ struct TexWrap {
 
 struct SpriteWrap {
     bsglSprite* s;
+    WrenHandle* tex;    // keeps the Wren Texture alive while the sprite uses it
 };
 
 struct AnimWrap {
     bsglAnimation* a;
+    WrenHandle* tex;    // keeps the Wren Texture alive while the animation uses it
 };
 
 struct QuadWrap {
-    bsglQuad q;
+    bsglQuad    q;
+    WrenHandle* tex;    // keeps the Wren Texture alive while the quad uses it
 };
 
 struct SoundWrap {
@@ -310,6 +313,24 @@ static HTEXTURE SlotTexture(int slot) {
     }
     TexWrap* t = (TexWrap*)wrenGetSlotForeign(S->vm, slot);
     return t ? t->h : 0;
+}
+
+// Grab a GC handle to the Texture object in `slot`, releasing any
+// previously held one. Without this, a Wren Texture that is only
+// referenced by a Sprite/Animation/Quad (not by a script variable)
+// gets garbage collected and its finalize frees the HTEXTURE,
+// leaving the sprite with a dangling texture (renders as a white
+// box). Releasing a handle inside a foreign finalize is fine: it is
+// just an unlink from the VM's handle list.
+static WrenHandle* HoldTexture(WrenVM* vm, int slot, WrenHandle* prev) {
+    if (prev) {
+        wrenReleaseHandle(vm, prev);
+        prev = nullptr;
+    }
+    if (wrenGetSlotType(vm, slot) != WREN_TYPE_NULL) {
+        prev = wrenGetSlotHandle(vm, slot);
+    }
+    return prev;
 }
 
 //=====================================================================
@@ -549,13 +570,21 @@ static void ChnLength(WrenVM*)  { wrenSetSlotDouble(S->vm, 0, S->bsgl->Channel_G
 static void QuadAllocate(WrenVM* vm) {
     QuadWrap* q = (QuadWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(QuadWrap));
     memset(&q->q, 0, sizeof(q->q));
+    q->tex = nullptr;
 }
 
-static void QuadFinalize(void*) {}
+static void QuadFinalize(void* data) {
+    QuadWrap* q = (QuadWrap*)data;
+    if (q->tex) {
+        wrenReleaseHandle(S->vm, q->tex);
+        q->tex = nullptr;
+    }
+}
 
 static void QuadSetTexture(WrenVM*) {
     QuadWrap* q = (QuadWrap*)wrenGetSlotForeign(S->vm, 0);
     q->q.tex = SlotTexture(1);
+    q->tex   = HoldTexture(S->vm, 1, q->tex);
 }
 
 static void QuadSetBlend(WrenVM*) {
@@ -584,18 +613,24 @@ static void QuadSetVertex(WrenVM*) {
 
 static void SprAllocate(WrenVM* vm) {
     SpriteWrap* w = (SpriteWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(SpriteWrap));
-    w->s = nullptr;
+    w->s   = nullptr;
+    w->tex = nullptr;
 }
 
 static void SprFinalize(void* data) {
     SpriteWrap* w = (SpriteWrap*)data;
     delete w->s;
     w->s = nullptr;
+    if (w->tex) {
+        wrenReleaseHandle(S->vm, w->tex);
+        w->tex = nullptr;
+    }
 }
 
 static void SprInit(WrenVM*) {
     SpriteWrap* w = (SpriteWrap*)wrenGetSlotForeign(S->vm, 0);
-    w->s = new bsglSprite(SlotTexture(1), ArgF(2), ArgF(3), ArgF(4), ArgF(5));
+    w->s   = new bsglSprite(SlotTexture(1), ArgF(2), ArgF(3), ArgF(4), ArgF(5));
+    w->tex = HoldTexture(S->vm, 1, w->tex);
 }
 
 static void SprRender(WrenVM*)   { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->Render(ArgF(1), ArgF(2)); }
@@ -607,7 +642,11 @@ static void SprRenderEx5(WrenVM*) {
 }
 static void SprStretch(WrenVM*)  { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->RenderStretch(ArgF(1), ArgF(2), ArgF(3), ArgF(4)); }
 static void SprRender4V(WrenVM*) { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->Render4V(ArgF(1), ArgF(2), ArgF(3), ArgF(4), ArgF(5), ArgF(6), ArgF(7), ArgF(8)); }
-static void SprSetTex(WrenVM*)   { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->SetTexture(SlotTexture(1)); }
+static void SprSetTex(WrenVM*)   {
+    SpriteWrap* w = (SpriteWrap*)wrenGetSlotForeign(S->vm, 0);
+    w->s->SetTexture(SlotTexture(1));
+    w->tex = HoldTexture(S->vm, 1, w->tex);
+}
 static void SprSetRect(WrenVM*)  { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->SetTextureRect(ArgF(1), ArgF(2), ArgF(3), ArgF(4)); }
 static void SprSetColor(WrenVM*) { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->SetColor(ArgColor(1)); }
 static void SprSetZ(WrenVM*)     { ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->SetZ(ArgF(1)); }
@@ -623,18 +662,24 @@ static void SprHeight(WrenVM*)   { wrenSetSlotDouble(S->vm, 0, ((SpriteWrap*)wre
 
 static void AnimAllocate(WrenVM* vm) {
     AnimWrap* w = (AnimWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AnimWrap));
-    w->a = nullptr;
+    w->a   = nullptr;
+    w->tex = nullptr;
 }
 
 static void AnimFinalize(void* data) {
     AnimWrap* w = (AnimWrap*)data;
     delete w->a;
     w->a = nullptr;
+    if (w->tex) {
+        wrenReleaseHandle(S->vm, w->tex);
+        w->tex = nullptr;
+    }
 }
 
 static void AnimInit(WrenVM*) {
     AnimWrap* w = (AnimWrap*)wrenGetSlotForeign(S->vm, 0);
-    w->a = new bsglAnimation(SlotTexture(1), ArgI(2), ArgF(3), ArgF(4), ArgF(5), ArgF(6), ArgF(7));
+    w->a   = new bsglAnimation(SlotTexture(1), ArgI(2), ArgF(3), ArgF(4), ArgF(5), ArgF(6), ArgF(7));
+    w->tex = HoldTexture(S->vm, 1, w->tex);
 }
 
 static bsglAnimation* AnimSelf() { return ((AnimWrap*)wrenGetSlotForeign(S->vm, 0))->a; }
@@ -644,7 +689,11 @@ static void AnimStop(WrenVM*)    { AnimSelf()->Stop(); }
 static void AnimResume(WrenVM*)  { AnimSelf()->Resume(); }
 static void AnimUpdate(WrenVM*)  { AnimSelf()->Update(ArgF(1)); }
 static void AnimPlaying(WrenVM*) { wrenSetSlotBool(S->vm, 0, AnimSelf()->IsPlaying()); }
-static void AnimSetTex(WrenVM*)  { AnimSelf()->SetTexture(SlotTexture(1)); }
+static void AnimSetTex(WrenVM*)  {
+    AnimWrap* w = (AnimWrap*)wrenGetSlotForeign(S->vm, 0);
+    w->a->SetTexture(SlotTexture(1));
+    w->tex = HoldTexture(S->vm, 1, w->tex);
+}
 static void AnimSetRect(WrenVM*) { AnimSelf()->SetTextureRect(ArgF(1), ArgF(2), ArgF(3), ArgF(4)); }
 static void AnimSetMode(WrenVM*) { AnimSelf()->SetMode(ArgI(1)); }
 static void AnimSetSpeed(WrenVM*){ AnimSelf()->SetSpeed(ArgF(1)); }
