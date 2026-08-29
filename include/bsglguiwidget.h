@@ -2,11 +2,11 @@
  ** Buggy-Mushroom's Spore Game Library
  ** Copyright (c) 2008-2026 Buggy-Mushroom Studio
  **
- ** bsglWidget class header
+ ** bsglGUIWidget class header
  */
 
-#ifndef BSGLWIDGET_H
-#define BSGLWIDGET_H
+#ifndef BSGLGUIWIDGET_H
+#define BSGLGUIWIDGET_H
 
 #include "bsgl.h"
 #include <list>
@@ -18,16 +18,16 @@ typedef enum {
     MouseState_Up,
 } MouseState;
 
-class bsglWidget {
+class bsglGUIWidget {
 public:
-    bsglWidget(int x, int y, int width, int height);
-    ~bsglWidget() { bsgl->Release(); }
+    bsglGUIWidget(int x, int y, int width, int height);
+    ~bsglGUIWidget() { bsgl->Release(); }
 
     void SetX(int x);
     void SetY(int y);
 
     void SetBackgroundColor(DWORD color);
-    void AddKid(bsglWidget* kid);
+    void AddKid(bsglGUIWidget* kid);
 
     void Render(float x, float y);
 
@@ -42,7 +42,7 @@ public:
     virtual void OnUp(bool inside);
 
 protected:
-    bsglWidget();
+    bsglGUIWidget();
     static BSGL* bsgl;
 
     int x_, y_;
@@ -51,9 +51,9 @@ protected:
 
     bool focus_;
 
-    std::list<bsglWidget*> kids_;
+    std::list<bsglGUIWidget*> kids_;
 
     bsglQuad quad_;
 };
 
-#endif//BSGLWIDGET_H
+#endif//BSGLGUIWIDGET_H

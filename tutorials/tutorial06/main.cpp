@@ -1,8 +1,8 @@
 /*
-** BSGL Tutorial 06 - Creating a simple menu with bsglWidget
+** BSGL Tutorial 06 - Creating a simple menu with bsglGUIWidget
 ** (adapted from hge_tut06 - Creating menus)
 **
-** bsglWidget is a minimal GUI building block: a colored rectangle
+** bsglGUIWidget is a minimal GUI building block: a colored rectangle
 ** with a position, a list of child widgets, mouse hit-testing and
 ** four overridable callbacks (OnRender/OnOver/OnDown/OnUp).
 ** Children use coordinates relative to their parent.
@@ -22,7 +22,7 @@
 #include "bsgl.h"
 #include "bsglfont.h"
 #include "bsgltextmesh.h"
-#include "bsglwidget.h"
+#include "bsglguiwidget.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -39,10 +39,10 @@ static int         bg_index = 0;
 // A simple push button: highlights under the cursor,
 // darkens while pressed, fires OnUp() when released inside
 // and draws a text label on top of its background.
-class Button : public bsglWidget {
+class Button : public bsglGUIWidget {
 public:
     Button(int x, int y, int w, int h, int id, bsglTextMesh* label)
-    :   bsglWidget(x, y, w, h)
+    :   bsglGUIWidget(x, y, w, h)
     ,   id_(id)
     ,   label_(label) {
         SetBackgroundColor(RGBA(0x70, 0x70, 0x90, 0xFF));
@@ -54,7 +54,7 @@ public:
 
     void OnRender(float x, float y) {
         // draw the background quad first, the label on top
-        bsglWidget::OnRender(x, y);
+        bsglGUIWidget::OnRender(x, y);
         if (label_) {
             // center the label inside the button
             label_->Render(x_+x+(w_-label_->GetWidth())/2,
@@ -100,7 +100,7 @@ private:
     bsglTextMesh*   label_;
 };
 
-static bsglWidget* panel = nullptr;
+static bsglGUIWidget* panel = nullptr;
 
 // The bundled DejaVu Sans font (tutorials/res/font.ttf), copied next
 // to the executable at build time - see tutorials/CMakeLists.txt.
@@ -129,7 +129,7 @@ bool LogicFunc() {
         return true;
     }
 
-    // Translate the BSGL mouse state into bsglWidget events.
+    // Translate the BSGL mouse state into bsglGUIWidget events.
     // The widget coordinates of kids are relative to their parent,
     // so the panel is fed with plain screen coordinates.
     float mx = (float)bsgl->Control_GetMouseX();
@@ -184,7 +184,7 @@ void bsgl_main() {
         }
 
         // The panel: a container widget with its own background
-        panel = new bsglWidget(250, 150, 300, 300);
+        panel = new bsglGUIWidget(250, 150, 300, 300);
         panel->SetBackgroundColor(RGBA(0x30, 0x30, 0x50, 0xFF));
 
         // Three labelled buttons, positioned relative to the panel

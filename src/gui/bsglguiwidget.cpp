@@ -2,15 +2,15 @@
  ** Buggy-Mushroom's Spore Game Library
  ** Copyright (c) 2008-2026 Buggy-Mushroom Studio
  **
- ** bsglWidget class implementation
+ ** bsglGUIWidget class implementation
  */
 
-#include "bsglwidget.h"
+#include "bsglguiwidget.h"
 #include <string.h>
 
-BSGL* bsglWidget::bsgl=nullptr;
+BSGL* bsglGUIWidget::bsgl=nullptr;
 
-bsglWidget::bsglWidget(int x, int y, int width, int height) {
+bsglGUIWidget::bsglGUIWidget(int x, int y, int width, int height) {
     bsgl = bsglCreate(BSGL_VERSION);
     x_ = x;
     y_ = y;
@@ -26,33 +26,33 @@ bsglWidget::bsglWidget(int x, int y, int width, int height) {
     quad_.blend = BLEND_DEFAULT;
 }
 
-void bsglWidget::SetX(int x) {
+void bsglGUIWidget::SetX(int x) {
     x_ = x;
 }
 
-void bsglWidget::SetY(int y) {
+void bsglGUIWidget::SetY(int y) {
     y_ = y;
 }
 
-void bsglWidget::SetBackgroundColor(DWORD color) {
+void bsglGUIWidget::SetBackgroundColor(DWORD color) {
     col_ = color;
 }
 
-void bsglWidget::AddKid(bsglWidget* kid) {
+void bsglGUIWidget::AddKid(bsglGUIWidget* kid) {
     kids_.push_back(kid);
 }
 
-void bsglWidget::Render(float x, float y) {
+void bsglGUIWidget::Render(float x, float y) {
     this->OnRender(x, y);
 
-    std::list<bsglWidget*>::iterator itr = kids_.begin();
+    std::list<bsglGUIWidget*>::iterator itr = kids_.begin();
     for (; itr!=kids_.end(); ++itr) {
-        bsglWidget* w = *itr;
+        bsglGUIWidget* w = *itr;
         w->Render(x_+x, y_+y);
     }
 }
 
-void bsglWidget::MouseAt(float x, float y, MouseState state) {
+void bsglGUIWidget::MouseAt(float x, float y, MouseState state) {
     static float ox;
     static float oy;
     bool post = false;
@@ -64,8 +64,8 @@ void bsglWidget::MouseAt(float x, float y, MouseState state) {
         case MouseState_Down: {
             if (TestAt(x, y)) {
                 bool inKids = false;
-                std::list<bsglWidget*>::iterator itr = kids_.begin();
-                bsglWidget* w;
+                std::list<bsglGUIWidget*>::iterator itr = kids_.begin();
+                bsglGUIWidget* w;
                 for (; itr!=kids_.end(); ++itr) {
                     w = *itr;
                     if (w->TestAt(x-x_, y-y_)) {
@@ -87,9 +87,9 @@ void bsglWidget::MouseAt(float x, float y, MouseState state) {
         }break;
         case MouseState_Passing: {
             if (focus_) {
-                this->OnMove(x-ox, y-ox);
+                this->OnMove(x-ox, y-oy);
                 ox = x;
-                ox = y;
+                oy = y;
             }
             post = true;
         }break;
@@ -103,22 +103,22 @@ void bsglWidget::MouseAt(float x, float y, MouseState state) {
         default: break;
     }
     if (post) {
-        std::list<bsglWidget*>::iterator itr = kids_.begin();
+        std::list<bsglGUIWidget*>::iterator itr = kids_.begin();
         for (; itr!=kids_.end(); ++itr) {
-            bsglWidget* w = *itr;
+            bsglGUIWidget* w = *itr;
             w->MouseAt(x-x_, y-y_, state);
         }
     }
 }
 
-bool bsglWidget::TestAt(float x, float y) {
+bool bsglGUIWidget::TestAt(float x, float y) {
     if (x >= x_ && x < x_+w_ && y >= y_ && y < y_+h_) {
         return true;
     }
     return false;
 }
 
-void bsglWidget::OnRender(float x, float y) {
+void bsglGUIWidget::OnRender(float x, float y) {
     quad_.v[0].x = x_+x;    quad_.v[0].y = y_+y;
     quad_.v[1].x = x_+x+w_; quad_.v[1].y = y_+y;
     quad_.v[2].x = x_+x+w_; quad_.v[2].y = y_+y+h_;
@@ -130,18 +130,18 @@ void bsglWidget::OnRender(float x, float y) {
     bsgl->Gfx_RenderQuad(&quad_);
 }
 
-void bsglWidget::OnOver(float x, float y) {
+void bsglGUIWidget::OnOver(float x, float y) {
     return;
 }
 
-void bsglWidget::OnDown() {
+void bsglGUIWidget::OnDown() {
     return;
 }
 
-void bsglWidget::OnMove(float dx, float dy) {
+void bsglGUIWidget::OnMove(float dx, float dy) {
     return;
 }
 
-void bsglWidget::OnUp(bool inside) {
+void bsglGUIWidget::OnUp(bool inside) {
     return;
 }

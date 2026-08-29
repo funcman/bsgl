@@ -189,13 +189,15 @@ add_library(bsgl STATIC
     src/core/random.cpp
     src/advance/bsglrect.cpp
     src/advance/bsglsprite.cpp
+    src/advance/bsglsprite9.cpp
     src/advance/bsglanim.cpp
     src/advance/bsglspine.cpp
     src/advance/bsgldbones.cpp
     src/advance/bsglwren.cpp
     src/gui/bsglfont.cpp
     src/gui/bsgltextmesh.cpp
-    src/gui/bsglwidget.cpp
+    src/gui/bsglguiwidget.cpp
+    src/gui/bsglguictrls.cpp
     "${BSGL_WREN_INC}"
 )
 

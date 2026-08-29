@@ -445,7 +445,7 @@ foreign class DBones {
     foreign render
 }
 
-foreign class Widget {
+foreign class GUIWidget {
     construct new(x, y, w, h) { init_(x, y, w, h) }
 
     foreign init_(x, y, w, h)
@@ -463,10 +463,75 @@ foreign class Widget {
     static mousePassing { 2 }
     static mouseUp      { 3 }
 
-    /* Override these in a subclass (`class Button is Widget`). */
+    /* Override these in a subclass (`class Panel is GUIWidget`). */
     onRender(x, y) { }
     onOver(x, y) { }
     onDown() { }
     onMove(dx, dy) { }
     onUp(inside) { }
+}
+
+foreign class GUILabel {
+    construct new(font, x, y, w, h) { init_(font, x, y, w, h) }
+
+    foreign init_(font, x, y, w, h)
+
+    foreign setMode(align)
+    foreign setText(text)
+    foreign backgroundColor=(c)    // text color
+    foreign setX(v)
+    foreign setY(v)
+    foreign addKid(kid)
+    foreign render(x, y)
+    foreign mouseAt(x, y, state)
+    foreign testAt(x, y)
+    foreign width
+    foreign height
+
+    static alignLeft   { 0 }
+    static alignCenter { 1 }
+    static alignRight  { 2 }
+}
+
+foreign class GUIButton {
+    construct new(x, y, w, h, texture, txUp, tyUp, txDown, tyDown) {
+        init_(x, y, w, h, texture, txUp, tyUp, txDown, tyDown)
+    }
+
+    foreign init_(x, y, w, h, texture, txUp, tyUp, txDown, tyDown)
+
+    foreign setMode(trigger)
+    foreign setState(down)
+    foreign state
+    foreign setX(v)
+    foreign setY(v)
+    foreign addKid(kid)
+    foreign render(x, y)
+    foreign mouseAt(x, y, state)
+    foreign testAt(x, y)
+
+    /* Override in a subclass to handle clicks. */
+    onClick() { }
+}
+
+foreign class GUISlider {
+    construct new(x, y, w, h, texture, tx, ty, sw, sh) {
+        init_(x, y, w, h, texture, tx, ty, sw, sh)
+    }
+
+    foreign init_(x, y, w, h, texture, tx, ty, sw, sh)
+
+    foreign setMode(min, max, mode)
+    foreign setValue(v)
+    foreign value
+    foreign setX(v)
+    foreign setY(v)
+    foreign addKid(kid)
+    foreign render(x, y)
+    foreign mouseAt(x, y, state)
+    foreign testAt(x, y)
+
+    static bar          { 0 }
+    static barRelative  { 1 }
+    static slider       { 2 }
 }

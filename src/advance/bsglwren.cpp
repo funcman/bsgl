@@ -19,7 +19,7 @@
 ** Wren forbids calling into the VM from inside a foreign method
 ** (wren_vm.c: "Can not call from a foreign method."), so callbacks
 ** that originate from C++ code running inside a foreign call - the
-** bsglWidget virtuals during mouseAt()/render() and the Spine event
+** bsglGUIWidget virtuals during mouseAt()/render() and the Spine event
 ** listeners during update() - are queued and dispatched from the
 ** frame bridge, after the update()/render() call has returned.
 */
@@ -31,7 +31,8 @@
 #include "bsglfont.h"
 #include "bsglspine.h"
 #include "bsgldbones.h"
-#include "bsglwidget.h"
+#include "bsglguiwidget.h"
+#include "bsglguictrls.h"
 #include "bsglwren.h"
 
 // wren.h has no extern "C" guard of its own
@@ -79,6 +80,7 @@ public:
     WrenHandle* wOnDown;
     WrenHandle* wOnMove;
     WrenHandle* wOnUp;
+    WrenHandle* wOnClick;
 };
 
 static bsglWrenImpl* S = nullptr;   // the active host (single VM per process)
@@ -219,15 +221,30 @@ struct WidgetWrap {
     class WrenWidget* w;
 };
 
+struct LabelWrap {
+    bsglGUILabel* l;        // must stay the first member (see SlotWidget)
+    WrenHandle* font;       // keeps the Wren Font alive while the label uses it
+};
+
+struct BtnWrap {
+    class WrenGUIButton* b; // must stay the first member (see SlotWidget)
+    WrenHandle* tex;
+};
+
+struct SliderWrap {
+    bsglGUISlider* s;       // must stay the first member (see SlotWidget)
+    WrenHandle* tex;
+};
+
 //---------------------------------------------------------------------
-// WrenWidget: bridges the bsglWidget virtuals into Wren methods by
+// WrenWidget: bridges the bsglGUIWidget virtuals into Wren methods by
 // deferring the calls (they fire inside foreign methods)
 //---------------------------------------------------------------------
 
-class WrenWidget : public bsglWidget {
+class WrenWidget : public bsglGUIWidget {
 public:
     WrenWidget(int x, int y, int w, int h)
-        : bsglWidget(x, y, w, h), self(nullptr) {}
+        : bsglGUIWidget(x, y, w, h), self(nullptr) {}
 
     ~WrenWidget() {
         if (self) {
@@ -244,7 +261,7 @@ public:
     }
 
     void OnRender(float x, float y) {
-        bsglWidget::OnRender(x, y);    // draw the background quad
+        bsglGUIWidget::OnRender(x, y);    // draw the background quad
         if (self) Defer(self, S->wOnRender, x, y, 2);
     }
 
@@ -262,6 +279,41 @@ public:
 
     void OnUp(bool inside) {
         if (self) DeferBool(self, S->wOnUp, inside);
+    }
+
+private:
+    WrenHandle* self;
+};
+
+//---------------------------------------------------------------------
+// WrenGUIButton: bridges bsglGUIButton::OnClick into a deferred Wren
+// "onClick()" call (same mechanism as WrenWidget)
+//---------------------------------------------------------------------
+
+class WrenGUIButton : public bsglGUIButton {
+public:
+    WrenGUIButton(int x, int y, int w, int h,
+                  HTEXTURE tex,
+                  float tx_up, float ty_up,
+                  float tx_down, float ty_down)
+        : bsglGUIButton(x, y, w, h, tex, tx_up, ty_up, tx_down, ty_down),
+          self(nullptr) {}
+
+    ~WrenGUIButton() {
+        if (self) {
+            wrenReleaseHandle(S->vm, self);
+        }
+    }
+
+    void BindSelf(WrenVM* vm) {
+        if (self) {
+            wrenReleaseHandle(vm, self);
+        }
+        self = wrenGetSlotHandle(vm, 0);
+    }
+
+    void OnClick() {
+        if (self) Defer(self, S->wOnClick);
     }
 
 private:
@@ -936,8 +988,22 @@ static void DBUpdate(WrenVM*)   { DBSelf()->Update(ArgF(1)); }
 static void DBRender(WrenVM*)   { DBSelf()->Render(); }
 
 //=====================================================================
-// Widget
+// GUIWidget / GUILabel / GUIButton / GUISlider
 //=====================================================================
+
+// Every widget-like wrap struct starts with a bsglGUIWidget* (or a
+// pointer to a subclass), so this header cast reads it uniformly.
+struct WidHdr {
+    bsglGUIWidget* w;
+};
+
+static bsglGUIWidget* SlotWidget(int slot) {
+    if (wrenGetSlotType(S->vm, slot) == WREN_TYPE_NULL) {
+        return nullptr;
+    }
+    WidHdr* h = (WidHdr*)wrenGetSlotForeign(S->vm, slot);
+    return h ? h->w : nullptr;
+}
 
 static void WidAllocate(WrenVM* vm) {
     WidgetWrap* w = (WidgetWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(WidgetWrap));
@@ -957,21 +1023,111 @@ static void WidInit(WrenVM*) {
     w->w->BindSelf(S->vm);
 }
 
-static WrenWidget* WidSelf() { return ((WidgetWrap*)wrenGetSlotForeign(S->vm, 0))->w; }
-
-static void WidSetX(WrenVM*)  { WidSelf()->SetX(ArgI(1)); }
-static void WidSetY(WrenVM*)  { WidSelf()->SetY(ArgI(1)); }
-static void WidSetBg(WrenVM*) { WidSelf()->SetBackgroundColor(ArgColor(1)); }
+// generic methods shared by GUIWidget / GUILabel / GUIButton / GUISlider
+static void WidSetX(WrenVM*)  { SlotWidget(0)->SetX(ArgI(1)); }
+static void WidSetY(WrenVM*)  { SlotWidget(0)->SetY(ArgI(1)); }
+static void WidSetBg(WrenVM*) { SlotWidget(0)->SetBackgroundColor(ArgColor(1)); }
 static void WidAddKid(WrenVM*) {
-    WrenWidget* kid = wrenGetSlotType(S->vm, 1) == WREN_TYPE_NULL
-        ? nullptr : ((WidgetWrap*)wrenGetSlotForeign(S->vm, 1))->w;
+    bsglGUIWidget* kid = SlotWidget(1);
     if (kid) {
-        WidSelf()->AddKid(kid);
+        SlotWidget(0)->AddKid(kid);
     }
 }
-static void WidRender(WrenVM*)  { WidSelf()->Render(ArgF(1), ArgF(2)); }
-static void WidMouseAt(WrenVM*) { WidSelf()->MouseAt(ArgF(1), ArgF(2), (MouseState)ArgI(3)); }
-static void WidTestAt(WrenVM*)  { wrenSetSlotBool(S->vm, 0, WidSelf()->TestAt(ArgF(1), ArgF(2))); }
+static void WidRender(WrenVM*)  { SlotWidget(0)->Render(ArgF(1), ArgF(2)); }
+static void WidMouseAt(WrenVM*) { SlotWidget(0)->MouseAt(ArgF(1), ArgF(2), (MouseState)ArgI(3)); }
+static void WidTestAt(WrenVM*)  { wrenSetSlotBool(S->vm, 0, SlotWidget(0)->TestAt(ArgF(1), ArgF(2))); }
+
+//---------------------------------------------------------------------
+// GUILabel
+
+static void LblAllocate(WrenVM* vm) {
+    LabelWrap* w = (LabelWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(LabelWrap));
+    w->l    = nullptr;
+    w->font = nullptr;
+}
+
+static void LblFinalize(void* data) {
+    LabelWrap* w = (LabelWrap*)data;
+    delete w->l;
+    w->l = nullptr;
+    if (w->font) {
+        wrenReleaseHandle(S->vm, w->font);
+        w->font = nullptr;
+    }
+}
+
+static void LblInit(WrenVM*) {
+    LabelWrap* w = (LabelWrap*)wrenGetSlotForeign(S->vm, 0);
+    FontWrap* f = (FontWrap*)wrenGetSlotForeign(S->vm, 1);
+    w->l    = new bsglGUILabel(ArgI(2), ArgI(3), ArgI(4), ArgI(5), f ? f->f : nullptr);
+    w->font = HoldTexture(S->vm, 1, w->font);   // same pattern, for any foreign slot
+}
+
+static void LblSetMode(WrenVM*) { ((LabelWrap*)wrenGetSlotForeign(S->vm, 0))->l->SetMode(ArgI(1)); }
+static void LblSetText(WrenVM*) { ((LabelWrap*)wrenGetSlotForeign(S->vm, 0))->l->SetText(ArgStr(1)); }
+static void LblWidth(WrenVM*)   { wrenSetSlotDouble(S->vm, 0, ((LabelWrap*)wrenGetSlotForeign(S->vm, 0))->l->GetWidth()); }
+static void LblHeight(WrenVM*)  { wrenSetSlotDouble(S->vm, 0, ((LabelWrap*)wrenGetSlotForeign(S->vm, 0))->l->GetHeight()); }
+
+//---------------------------------------------------------------------
+// GUIButton
+
+static void BtnAllocate(WrenVM* vm) {
+    BtnWrap* w = (BtnWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(BtnWrap));
+    w->b   = nullptr;
+    w->tex = nullptr;
+}
+
+static void BtnFinalize(void* data) {
+    BtnWrap* w = (BtnWrap*)data;
+    delete w->b;
+    w->b = nullptr;
+    if (w->tex) {
+        wrenReleaseHandle(S->vm, w->tex);
+        w->tex = nullptr;
+    }
+}
+
+static void BtnInit(WrenVM*) {
+    BtnWrap* w = (BtnWrap*)wrenGetSlotForeign(S->vm, 0);
+    w->b   = new WrenGUIButton(ArgI(1), ArgI(2), ArgI(3), ArgI(4),
+                               SlotTexture(5), ArgF(6), ArgF(7), ArgF(8), ArgF(9));
+    w->b->BindSelf(S->vm);
+    w->tex = HoldTexture(S->vm, 5, w->tex);
+}
+
+static void BtnSetMode(WrenVM*)   { ((BtnWrap*)wrenGetSlotForeign(S->vm, 0))->b->SetMode(ArgB(1)); }
+static void BtnSetState(WrenVM*)  { ((BtnWrap*)wrenGetSlotForeign(S->vm, 0))->b->SetState(ArgB(1)); }
+static void BtnGetState(WrenVM*)  { wrenSetSlotBool(S->vm, 0, ((BtnWrap*)wrenGetSlotForeign(S->vm, 0))->b->GetState()); }
+
+//---------------------------------------------------------------------
+// GUISlider
+
+static void SldAllocate(WrenVM* vm) {
+    SliderWrap* w = (SliderWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(SliderWrap));
+    w->s   = nullptr;
+    w->tex = nullptr;
+}
+
+static void SldFinalize(void* data) {
+    SliderWrap* w = (SliderWrap*)data;
+    delete w->s;
+    w->s = nullptr;
+    if (w->tex) {
+        wrenReleaseHandle(S->vm, w->tex);
+        w->tex = nullptr;
+    }
+}
+
+static void SldInit(WrenVM*) {
+    SliderWrap* w = (SliderWrap*)wrenGetSlotForeign(S->vm, 0);
+    w->s   = new bsglGUISlider(ArgI(1), ArgI(2), ArgI(3), ArgI(4),
+                               SlotTexture(5), ArgF(6), ArgF(7), ArgF(8), ArgF(9));
+    w->tex = HoldTexture(S->vm, 5, w->tex);
+}
+
+static void SldSetMode(WrenVM*)   { ((SliderWrap*)wrenGetSlotForeign(S->vm, 0))->s->SetMode(ArgF(1), ArgF(2), ArgI(3)); }
+static void SldSetValue(WrenVM*)  { ((SliderWrap*)wrenGetSlotForeign(S->vm, 0))->s->SetValue(ArgF(1)); }
+static void SldGetValue(WrenVM*)  { wrenSetSlotDouble(S->vm, 0, ((SliderWrap*)wrenGetSlotForeign(S->vm, 0))->s->GetValue()); }
 
 //=====================================================================
 // Foreign method / class binding
@@ -1214,15 +1370,57 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
     if (Match(className, isStatic, signature, "DBones", false, "render"))           return DBRender;
 
     // --- Widget -----------------------------------------------------
-    if (Match(className, isStatic, signature, "Widget", true, "allocate"))          return WidAllocate;
-    if (Match(className, isStatic, signature, "Widget", false, "init_(_,_,_,_)"))   return WidInit;
-    if (Match(className, isStatic, signature, "Widget", false, "setX(_)"))          return WidSetX;
-    if (Match(className, isStatic, signature, "Widget", false, "setY(_)"))          return WidSetY;
-    if (Match(className, isStatic, signature, "Widget", false, "backgroundColor=(_)")) return WidSetBg;
-    if (Match(className, isStatic, signature, "Widget", false, "addKid(_)"))        return WidAddKid;
-    if (Match(className, isStatic, signature, "Widget", false, "render(_,_)"))      return WidRender;
-    if (Match(className, isStatic, signature, "Widget", false, "mouseAt(_,_,_)"))   return WidMouseAt;
-    if (Match(className, isStatic, signature, "Widget", false, "testAt(_,_)"))      return WidTestAt;
+    // --- GUIWidget --------------------------------------------------
+    if (Match(className, isStatic, signature, "GUIWidget", true, "allocate"))          return WidAllocate;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "init_(_,_,_,_)"))   return WidInit;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "setX(_)"))          return WidSetX;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "setY(_)"))          return WidSetY;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "backgroundColor=(_)")) return WidSetBg;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "addKid(_)"))        return WidAddKid;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "render(_,_)"))      return WidRender;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "mouseAt(_,_,_)"))   return WidMouseAt;
+    if (Match(className, isStatic, signature, "GUIWidget", false, "testAt(_,_)"))      return WidTestAt;
+
+    // --- GUILabel ---------------------------------------------------
+    if (Match(className, isStatic, signature, "GUILabel", true, "allocate"))           return LblAllocate;
+    if (Match(className, isStatic, signature, "GUILabel", false, "init_(_,_,_,_,_)"))  return LblInit;
+    if (Match(className, isStatic, signature, "GUILabel", false, "setMode(_)"))        return LblSetMode;
+    if (Match(className, isStatic, signature, "GUILabel", false, "setText(_)"))        return LblSetText;
+    if (Match(className, isStatic, signature, "GUILabel", false, "backgroundColor=(_)")) return WidSetBg;
+    if (Match(className, isStatic, signature, "GUILabel", false, "setX(_)"))           return WidSetX;
+    if (Match(className, isStatic, signature, "GUILabel", false, "setY(_)"))           return WidSetY;
+    if (Match(className, isStatic, signature, "GUILabel", false, "addKid(_)"))         return WidAddKid;
+    if (Match(className, isStatic, signature, "GUILabel", false, "render(_,_)"))       return WidRender;
+    if (Match(className, isStatic, signature, "GUILabel", false, "mouseAt(_,_,_)"))    return WidMouseAt;
+    if (Match(className, isStatic, signature, "GUILabel", false, "testAt(_,_)"))       return WidTestAt;
+    if (Match(className, isStatic, signature, "GUILabel", false, "width"))             return LblWidth;
+    if (Match(className, isStatic, signature, "GUILabel", false, "height"))            return LblHeight;
+
+    // --- GUIButton --------------------------------------------------
+    if (Match(className, isStatic, signature, "GUIButton", true, "allocate"))          return BtnAllocate;
+    if (Match(className, isStatic, signature, "GUIButton", false, "init_(_,_,_,_,_,_,_,_,_)")) return BtnInit;
+    if (Match(className, isStatic, signature, "GUIButton", false, "setMode(_)"))       return BtnSetMode;
+    if (Match(className, isStatic, signature, "GUIButton", false, "setState(_)"))      return BtnSetState;
+    if (Match(className, isStatic, signature, "GUIButton", false, "state"))            return BtnGetState;
+    if (Match(className, isStatic, signature, "GUIButton", false, "setX(_)"))          return WidSetX;
+    if (Match(className, isStatic, signature, "GUIButton", false, "setY(_)"))          return WidSetY;
+    if (Match(className, isStatic, signature, "GUIButton", false, "addKid(_)"))        return WidAddKid;
+    if (Match(className, isStatic, signature, "GUIButton", false, "render(_,_)"))      return WidRender;
+    if (Match(className, isStatic, signature, "GUIButton", false, "mouseAt(_,_,_)"))   return WidMouseAt;
+    if (Match(className, isStatic, signature, "GUIButton", false, "testAt(_,_,_)"))    return WidTestAt;
+
+    // --- GUISlider --------------------------------------------------
+    if (Match(className, isStatic, signature, "GUISlider", true, "allocate"))          return SldAllocate;
+    if (Match(className, isStatic, signature, "GUISlider", false, "init_(_,_,_,_,_,_,_,_,_)")) return SldInit;
+    if (Match(className, isStatic, signature, "GUISlider", false, "setMode(_,_,_)"))   return SldSetMode;
+    if (Match(className, isStatic, signature, "GUISlider", false, "setValue(_)"))      return SldSetValue;
+    if (Match(className, isStatic, signature, "GUISlider", false, "value"))            return SldGetValue;
+    if (Match(className, isStatic, signature, "GUISlider", false, "setX(_)"))          return WidSetX;
+    if (Match(className, isStatic, signature, "GUISlider", false, "setY(_)"))          return WidSetY;
+    if (Match(className, isStatic, signature, "GUISlider", false, "addKid(_)"))        return WidAddKid;
+    if (Match(className, isStatic, signature, "GUISlider", false, "render(_,_)"))      return WidRender;
+    if (Match(className, isStatic, signature, "GUISlider", false, "mouseAt(_,_,_)"))   return WidMouseAt;
+    if (Match(className, isStatic, signature, "GUISlider", false, "testAt(_,_)"))      return WidTestAt;
 
     return nullptr;
 }
@@ -1248,7 +1446,10 @@ static WrenForeignClassMethods BindForeignClass(WrenVM*,
     if (strcmp(className, "Font") == 0)    { methods.allocate = FontAllocate;  methods.finalize = FontFinalize; }
     if (strcmp(className, "Spine") == 0)   { methods.allocate = SpineAllocate; methods.finalize = SpineFinalize; }
     if (strcmp(className, "DBones") == 0)  { methods.allocate = DBAllocate;    methods.finalize = DBFinalize; }
-    if (strcmp(className, "Widget") == 0)  { methods.allocate = WidAllocate;   methods.finalize = WidFinalize; }
+    if (strcmp(className, "GUIWidget") == 0)  { methods.allocate = WidAllocate;   methods.finalize = WidFinalize; }
+    if (strcmp(className, "GUILabel") == 0)   { methods.allocate = LblAllocate;   methods.finalize = LblFinalize; }
+    if (strcmp(className, "GUIButton") == 0)  { methods.allocate = BtnAllocate;   methods.finalize = BtnFinalize; }
+    if (strcmp(className, "GUISlider") == 0)  { methods.allocate = SldAllocate;   methods.finalize = SldFinalize; }
 
     return methods;
 }
@@ -1433,7 +1634,8 @@ bool bsglWren::Run(char const* scriptFile) {
     I->wOnOver   = wrenMakeCallHandle(I->vm, "onOver(_,_)");
     I->wOnDown   = wrenMakeCallHandle(I->vm, "onDown()");
     I->wOnMove   = wrenMakeCallHandle(I->vm, "onMove(_,_)");
-    I->wOnUp     = wrenMakeCallHandle(I->vm, "onUp(_)");
+        I->wOnUp     = wrenMakeCallHandle(I->vm, "onUp(_)");
+        I->wOnClick  = wrenMakeCallHandle(I->vm, "onClick()");
     I->initHandle   = wrenMakeCallHandle(I->vm, "init()");
     I->updateHandle = wrenMakeCallHandle(I->vm, "update(_)");
     I->renderHandle = wrenMakeCallHandle(I->vm, "render()");

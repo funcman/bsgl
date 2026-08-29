@@ -269,7 +269,7 @@ public:
     virtual float       CALL Timer_GetDelta() = 0;
     virtual int         CALL Timer_GetFPS() = 0;
 
-    virtual bool        CALL Gfx_BeginScene(bool debug = false) = 0;
+    virtual bool        CALL Gfx_BeginScene(bool debug=false) = 0;
     virtual void        CALL Gfx_EndScene() = 0;
     virtual void        CALL Gfx_Clear(DWORD color) = 0;
     virtual void        CALL Gfx_RenderTriple(const bsglTriple* triple) = 0;

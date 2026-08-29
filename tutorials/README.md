@@ -13,7 +13,7 @@ counterpart and were replaced by tutorials on BSGL-specific topics.)
 | tutorial03 | Helper classes: `bsglSprite` and `bsglAnimation` |
 | tutorial04 | Rendering text with `bsglFont` (FreeType) |
 | tutorial05 | Config file (`Config_*`), random numbers, timer and logging |
-| tutorial06 | Creating a simple menu with `bsglWidget` |
+| tutorial06 | Creating a simple menu with `bsglGUIWidget` |
 | tutorial07 | Thousand of Hares: sprite batching stress test, blend modes |
 | tutorial08 | Spine skeletal animation with `bsglSpine` (spine-cpp runtime) |
 
