@@ -354,6 +354,7 @@ foreign class Font {
     foreign init_(filename, size)
     foreign loaded
     foreign render(x, y, text, color)
+    foreign width(text)
 }
 
 foreign class Spine {

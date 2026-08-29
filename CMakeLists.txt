@@ -194,6 +194,7 @@ add_library(bsgl STATIC
     src/advance/bsgldbones.cpp
     src/advance/bsglwren.cpp
     src/gui/bsglfont.cpp
+    src/gui/bsgltextmesh.cpp
     src/gui/bsglwidget.cpp
     "${BSGL_WREN_INC}"
 )

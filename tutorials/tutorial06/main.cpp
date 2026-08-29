@@ -12,16 +12,16 @@
 **   - "Log"   writes a line to the log,
 **   - "Quit"  quits the application.
 **
-** The button labels are text textures rendered with bsglFont,
-** exactly as shown in tutorial 04, using the bundled DejaVu Sans
-** font (tutorials/res/font.ttf). Without the font the buttons
-** simply show no text.
+** The button labels are text meshes rendered through the bsglFont
+** glyph-atlas cache (bsglTextMesh, built once, rendered every frame),
+** using the bundled DejaVu Sans font (tutorials/res/font.ttf).
+** Without the font the buttons simply show no text.
 ** Pressing ESC also quits.
 */
 
 #include "bsgl.h"
-#include "bsglsprite.h"
 #include "bsglfont.h"
+#include "bsgltextmesh.h"
 #include "bsglwidget.h"
 #include <stdio.h>
 #include <string.h>
@@ -41,7 +41,7 @@ static int         bg_index = 0;
 // and draws a text label on top of its background.
 class Button : public bsglWidget {
 public:
-    Button(int x, int y, int w, int h, int id, bsglSprite* label)
+    Button(int x, int y, int w, int h, int id, bsglTextMesh* label)
     :   bsglWidget(x, y, w, h)
     ,   id_(id)
     ,   label_(label) {
@@ -56,7 +56,10 @@ public:
         // draw the background quad first, the label on top
         bsglWidget::OnRender(x, y);
         if (label_) {
-            label_->Render(x_+x, y_+y);
+            // center the label inside the button
+            label_->Render(x_+x+(w_-label_->GetWidth())/2,
+                           y_+y+(h_-label_->GetHeight())/2,
+                           RGBA(0x10, 0x10, 0x30, 0xFF));
         }
     }
 
@@ -93,8 +96,8 @@ public:
     }
 
 private:
-    int         id_;
-    bsglSprite* label_;
+    int             id_;
+    bsglTextMesh*   label_;
 };
 
 static bsglWidget* panel = nullptr;
@@ -112,30 +115,11 @@ static bool FontFileExists() {
     return false;
 }
 
-// Render a text label into a fresh texture and wrap it in a sprite.
-// The texture is returned through out_tex so the caller can free it.
-static bsglSprite* CreateLabel(bsglFont* font, char const* text,
-                               int w, int h, HTEXTURE* out_tex) {
-    *out_tex = bsgl->Texture_Create(w, h);
-    // clear to fully transparent pixels
-    int tw = bsgl->Texture_GetWidth(*out_tex);
-    int th = bsgl->Texture_GetHeight(*out_tex);
-    DWORD* pixels = bsgl->Texture_CreateData(tw, th);
-    memset(pixels, 0, tw*th*sizeof(DWORD));
-    bsgl->Texture_Update(*out_tex, pixels, 0, 0, tw, th);
-    bsgl->Texture_FreeData(pixels);
-
-    // draw the text roughly centered (baseline at ~2/3 of the height)
-    font->BeginDrawTexture(*out_tex, w/6, (h*2)/3, h);
-    for( char const* p = text; *p; ++p ) {
-        font->DrawGlyph((wchar_t)*p);
-    }
-    font->EndDrawTexture();
-
-    bsglSprite* spr = new bsglSprite(*out_tex, 0, 0, (float)w, (float)h);
-    // the glyphs are white; tint them dark navy for contrast
-    spr->SetColor(RGBA(0x10, 0x10, 0x30, 0xFF));
-    return spr;
+// Build a reusable label mesh from the font's glyph-atlas cache.
+static bsglTextMesh* CreateLabel(bsglFont* font, char const* text) {
+    bsglTextMesh* mesh = new bsglTextMesh();
+    font->RenderText(mesh, text);
+    return mesh;
 }
 
 bool LogicFunc() {
@@ -204,11 +188,10 @@ void bsgl_main() {
         panel->SetBackgroundColor(RGBA(0x30, 0x30, 0x50, 0xFF));
 
         // Three labelled buttons, positioned relative to the panel
-        HTEXTURE label_tex[3] = { 0, 0, 0 };
         Button* buttons[3];
         char const* captions[3] = { "Color", "Log", "Quit" };
         for( int i=0; i<3; ++i ) {
-            bsglSprite* label = font ? CreateLabel(font, captions[i], 200, 60, &label_tex[i]) : nullptr;
+            bsglTextMesh* label = font ? CreateLabel(font, captions[i]) : nullptr;
             buttons[i] = new Button(50, 40 + i*80, 200, 60, i+1, label);
             panel->AddKid(buttons[i]);
         }
@@ -217,9 +200,6 @@ void bsgl_main() {
 
         for( int i=0; i<3; ++i ) {
             delete buttons[i];
-            if (label_tex[i]) {
-                bsgl->Texture_Free(label_tex[i]);
-            }
         }
         delete panel;
         delete font;

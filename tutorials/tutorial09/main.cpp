@@ -14,12 +14,11 @@
 **   DBMecha_tex.bmp  - the atlas texture, an uncompressed 32-bit BMP
 **
 ** The current animation name and FPS are displayed in the top left
-** corner with a bsglFont text texture (see tutorial 04).
+** corner through the bsglFont glyph-atlas cache (see tutorial 04).
 */
 
 #include "bsgl.h"
 #include "bsgldbones.h"
-#include "bsglsprite.h"
 #include "bsglfont.h"
 #include <stdio.h>
 #include <string.h>
@@ -37,10 +36,7 @@ static bsglDBones* mecha = nullptr;
 static bsglQuad bgquad;
 
 // Text display
-static HTEXTURE    text_tex = 0;
-static bsglSprite* text_spr = nullptr;
-static bsglFont*   font     = nullptr;
-static float       text_dt  = 1.0f; // force an immediate redraw
+static bsglFont* font = nullptr;
 
 // Index of the current animation, for LEFT/RIGHT switching
 static int anim_index = 0;
@@ -67,35 +63,6 @@ static void SwitchAnimation(int dir) {
 
     anim_index = (anim_index + dir + count) % count;
     mecha->Play(mecha->GetAnimationName(anim_index), 0);
-
-    // redraw the info text immediately
-    text_dt = 1.0f;
-}
-
-// Redraw the info text (controls, current animation, FPS)
-static void UpdateText() {
-    if (!font) {
-        return;
-    }
-
-    int w = bsgl->Texture_GetWidth(text_tex);
-    int h = bsgl->Texture_GetHeight(text_tex);
-    DWORD* pixels = bsgl->Texture_CreateData(w, h);
-    memset(pixels, 0, w*h*sizeof(DWORD));
-    bsgl->Texture_Update(text_tex, pixels, 0, 0, w, h);
-    bsgl->Texture_FreeData(pixels);
-
-    char buf[96];
-    sprintf(buf, "LEFT/RIGHT switch animation   animation: %s",
-            mecha->GetCurrentAnimation());
-    font->BeginDrawTexture(text_tex, 4, 20, 24);
-    for( char const* p = buf; *p; ++p ) font->DrawGlyph((wchar_t)*p);
-    font->EndDrawTexture();
-
-    sprintf(buf, "FPS: %d", bsgl->Timer_GetFPS());
-    font->BeginDrawTexture(text_tex, 4, 44, 24);
-    for( char const* p = buf; *p; ++p ) font->DrawGlyph((wchar_t)*p);
-    font->EndDrawTexture();
 }
 
 bool LogicFunc() {
@@ -117,13 +84,6 @@ bool LogicFunc() {
     // Update the DragonBones animation
     mecha->Update(dt);
 
-    // Redraw the info text a few times a second (for the FPS readout)
-    text_dt += dt;
-    if (text_dt >= 0.25f) {
-        text_dt = 0.0f;
-        UpdateText();
-    }
-
     return false;
 }
 
@@ -135,8 +95,17 @@ bool RenderFunc() {
 
     mecha->Render();
 
-    if (text_spr) {
-        text_spr->Render(7, 7);
+    // Info text: glyphs come from the font's cache atlas, drawing the
+    // quads every frame is cheap
+    if (font) {
+        char buf[96];
+        sprintf(buf, "LEFT/RIGHT switch animation   animation: %s",
+                mecha->GetCurrentAnimation());
+        font->DrawText(7, 7, buf, RGBA(0xFF, 0xFF, 0xFF, 0xFF));
+
+        sprintf(buf, "FPS: %d", bsgl->Timer_GetFPS());
+        font->DrawText(7, 7 + font->GetLineHeight() + 4, buf,
+                       RGBA(0xFF, 0xFF, 0xFF, 0xFF));
     }
 
     bsgl->Gfx_EndScene();
@@ -196,8 +165,6 @@ void bsgl_main() {
         if (FontFileExists()) {
             bsgl->System_Log("Using font file: %s", FONT_FILE);
             font = new bsglFont(FONT_FILE, 14);
-            text_tex = bsgl->Texture_Create(560, 64);
-            text_spr = new bsglSprite(text_tex, 0, 0, 560, 64);
         } else {
             bsgl->System_Log("Warning: %s not found, no on-screen text.", FONT_FILE);
         }
@@ -207,10 +174,6 @@ void bsgl_main() {
 
         // Delete created objects and free loaded resources
         delete font;
-        delete text_spr;
-        if (text_tex) {
-            bsgl->Texture_Free(text_tex);
-        }
         delete mecha; // also frees the atlas texture
 
         bsgl->System_Shutdown();

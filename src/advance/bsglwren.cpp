@@ -195,12 +195,6 @@ struct MusicWrap {
 
 struct FontWrap {
     bsglFont*   f;
-    HTEXTURE    tex;        // scratch texture for Font.render
-    bsglSprite* spr;
-    int         size;
-    int         w, h;
-    int         lineH;
-    int         baseY;
 };
 
 struct SpineWrap {
@@ -720,70 +714,41 @@ static void AnimHeight(WrenVM*)    { wrenSetSlotDouble(S->vm, 0, AnimSelf()->Get
 static void FontAllocate(WrenVM* vm) {
     FontWrap* w = (FontWrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(FontWrap));
     w->f = nullptr;
-    w->tex = 0;
-    w->spr = nullptr;
-    w->size = 0;
-    w->w = w->h = 0;
-    w->lineH = w->baseY = 0;
 }
 
 static void FontFinalize(void* data) {
     FontWrap* w = (FontWrap*)data;
-    delete w->spr;
-    w->spr = nullptr;
-    if (w->tex) {
-        S->bsgl->Texture_Free(w->tex);
-        w->tex = 0;
-    }
     delete w->f;
     w->f = nullptr;
 }
 
 static void FontInit(WrenVM*) {
     FontWrap* w = (FontWrap*)wrenGetSlotForeign(S->vm, 0);
-    w->size = ArgI(2);
-    w->f = new bsglFont(ArgStr(1), w->size);
-    w->lineH = (w->size * 3) / 2;
-    w->baseY = w->size + w->lineH / 6;
+    w->f = new bsglFont(ArgStr(1), ArgI(2));
 }
 
 static void FontLoaded(WrenVM*) {
     FontWrap* w = (FontWrap*)wrenGetSlotForeign(S->vm, 0);
-    wrenSetSlotBool(S->vm, 0, w->f != nullptr);
+    wrenSetSlotBool(S->vm, 0, w->f && w->f->Loaded());
 }
 
 static void FontRender(WrenVM*) {
     FontWrap* w = (FontWrap*)wrenGetSlotForeign(S->vm, 0);
-    if (!w->f) {
+    if (!w->f || !w->f->Loaded()) {
         return;
     }
+    // glyphs come from the font's internal cache atlas; only glyphs not
+    // seen before get rasterized and uploaded
+    w->f->DrawText(ArgF(1), ArgF(2), ArgStr(3), ArgColor(4));
+}
 
-    // lazy scratch texture (must be created after System_Initiate)
-    if (!w->tex) {
-        w->w = 512;
-        w->h = w->lineH + 8;
-        w->tex = S->bsgl->Texture_Create(w->w, w->h);
-        w->spr = new bsglSprite(w->tex, 0, 0, (float)w->w, (float)w->h);
+static void FontWidth(WrenVM*) {
+    FontWrap* w = (FontWrap*)wrenGetSlotForeign(S->vm, 0);
+    if (!w->f || !w->f->Loaded()) {
+        wrenSetSlotDouble(S->vm, 0, 0.0);
+        return;
     }
-
-    // clear to transparent, then draw the glyphs (the same flow as
-    // tutorial04: new text would otherwise blend over the old one)
-    DWORD* pixels = S->bsgl->Texture_LoadData(w->tex);
-    if (pixels) {
-        memset(pixels, 0, w->w * w->h * sizeof(DWORD));
-        S->bsgl->Texture_Update(w->tex, pixels, 0, 0, w->w, w->h);
-        S->bsgl->Texture_FreeData(pixels);
-    }
-
-    const char* text = ArgStr(3);
-    w->f->BeginDrawTexture(w->tex, 2, w->baseY, w->lineH);
-    for (const char* p = text; *p; ++p) {
-        w->f->DrawGlyph((wchar_t)(unsigned char)*p);
-    }
-    w->f->EndDrawTexture();
-
-    w->spr->SetColor(ArgColor(4));
-    w->spr->Render(ArgF(1), ArgF(2));
+    wrenSetSlotDouble(S->vm, 0, w->f->GetTextWidth(ArgStr(1)));
 }
 
 //=====================================================================
@@ -1127,6 +1092,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
     if (Match(className, isStatic, signature, "Font", false, "init_(_,_)"))         return FontInit;
     if (Match(className, isStatic, signature, "Font", false, "loaded"))             return FontLoaded;
     if (Match(className, isStatic, signature, "Font", false, "render(_,_,_,_)"))    return FontRender;
+    if (Match(className, isStatic, signature, "Font", false, "width(_)"))          return FontWidth;
 
     // --- Spine ------------------------------------------------------
     if (Match(className, isStatic, signature, "Spine", true, "allocate"))           return SpineAllocate;
