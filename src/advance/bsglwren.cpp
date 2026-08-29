@@ -26,6 +26,7 @@
 
 #include "bsgl.h"
 #include "bsglsprite.h"
+#include "bsglsprite9.h"
 #include "bsglanim.h"
 #include "bsglfont.h"
 #include "bsglspine.h"
@@ -172,6 +173,11 @@ struct TexWrap {
 
 struct SpriteWrap {
     bsglSprite* s;
+    WrenHandle* tex;    // keeps the Wren Texture alive while the sprite uses it
+};
+
+struct Spr9Wrap {
+    bsglSprite9Slice* s;
     WrenHandle* tex;    // keeps the Wren Texture alive while the sprite uses it
 };
 
@@ -652,6 +658,50 @@ static void SprWidth(WrenVM*)    { wrenSetSlotDouble(S->vm, 0, ((SpriteWrap*)wre
 static void SprHeight(WrenVM*)   { wrenSetSlotDouble(S->vm, 0, ((SpriteWrap*)wrenGetSlotForeign(S->vm, 0))->s->GetHeight()); }
 
 //=====================================================================
+// Sprite9Slice
+//=====================================================================
+
+static void Spr9Allocate(WrenVM* vm) {
+    Spr9Wrap* w = (Spr9Wrap*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(Spr9Wrap));
+    w->s   = nullptr;
+    w->tex = nullptr;
+}
+
+static void Spr9Finalize(void* data) {
+    Spr9Wrap* w = (Spr9Wrap*)data;
+    delete w->s;
+    w->s = nullptr;
+    if (w->tex) {
+        wrenReleaseHandle(S->vm, w->tex);
+        w->tex = nullptr;
+    }
+}
+
+static void Spr9Init(WrenVM*) {
+    Spr9Wrap* w = (Spr9Wrap*)wrenGetSlotForeign(S->vm, 0);
+    w->s   = new bsglSprite9Slice(SlotTexture(1), ArgF(2), ArgF(3), ArgF(4), ArgF(5));
+    w->tex = HoldTexture(S->vm, 1, w->tex);
+}
+
+static void Spr9SetInsets(WrenVM*) {
+    ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->SetInsets(ArgF(1), ArgF(2), ArgF(3), ArgF(4));
+}
+static void Spr9Render(WrenVM*) {
+    ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->Render(ArgF(1), ArgF(2), ArgF(3), ArgF(4));
+}
+static void Spr9SetTex(WrenVM*) {
+    Spr9Wrap* w = (Spr9Wrap*)wrenGetSlotForeign(S->vm, 0);
+    w->s->SetTexture(SlotTexture(1));
+    w->tex = HoldTexture(S->vm, 1, w->tex);
+}
+static void Spr9SetRect(WrenVM*)  { ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->SetTextureRect(ArgF(1), ArgF(2), ArgF(3), ArgF(4)); }
+static void Spr9SetColor(WrenVM*) { ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->SetColor(ArgColor(1)); }
+static void Spr9SetZ(WrenVM*)     { ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->SetZ(ArgF(1)); }
+static void Spr9SetBlend(WrenVM*) { ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->SetBlendMode(ArgI(1)); }
+static void Spr9Width(WrenVM*)    { wrenSetSlotDouble(S->vm, 0, ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->GetWidth()); }
+static void Spr9Height(WrenVM*)   { wrenSetSlotDouble(S->vm, 0, ((Spr9Wrap*)wrenGetSlotForeign(S->vm, 0))->s->GetHeight()); }
+
+//=====================================================================
 // Animation
 //=====================================================================
 
@@ -1061,6 +1111,19 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
     if (Match(className, isStatic, signature, "Sprite", false, "width"))            return SprWidth;
     if (Match(className, isStatic, signature, "Sprite", false, "height"))           return SprHeight;
 
+    // --- Sprite9Slice ------------------------------------------------
+    if (Match(className, isStatic, signature, "Sprite9Slice", true, "allocate"))          return Spr9Allocate;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "init_(_,_,_,_,_)")) return Spr9Init;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "setInsets(_,_,_,_)")) return Spr9SetInsets;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "render(_,_,_,_)"))  return Spr9Render;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "setTexture(_)"))    return Spr9SetTex;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "setTextureRect(_,_,_,_)")) return Spr9SetRect;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "setColor(_)"))      return Spr9SetColor;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "setZ(_)"))          return Spr9SetZ;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "setBlendMode(_)"))  return Spr9SetBlend;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "width"))            return Spr9Width;
+    if (Match(className, isStatic, signature, "Sprite9Slice", false, "height"))           return Spr9Height;
+
     // --- Animation --------------------------------------------------
     if (Match(className, isStatic, signature, "Animation", true, "allocate"))       return AnimAllocate;
     if (Match(className, isStatic, signature, "Animation", false, "init_(_,_,_,_,_,_,_)")) return AnimInit;
@@ -1180,6 +1243,7 @@ static WrenForeignClassMethods BindForeignClass(WrenVM*,
     if (strcmp(className, "Sound") == 0)  { methods.allocate = SndAllocate;   methods.finalize = SndFinalize; }
     if (strcmp(className, "Music") == 0)  { methods.allocate = MusAllocate;   methods.finalize = MusFinalize; }
     if (strcmp(className, "Sprite") == 0)  { methods.allocate = SprAllocate;   methods.finalize = SprFinalize; }
+    if (strcmp(className, "Sprite9Slice") == 0) { methods.allocate = Spr9Allocate; methods.finalize = Spr9Finalize; }
     if (strcmp(className, "Animation") == 0) { methods.allocate = AnimAllocate; methods.finalize = AnimFinalize; }
     if (strcmp(className, "Font") == 0)    { methods.allocate = FontAllocate;  methods.finalize = FontFinalize; }
     if (strcmp(className, "Spine") == 0)   { methods.allocate = SpineAllocate; methods.finalize = SpineFinalize; }

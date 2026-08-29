@@ -313,6 +313,24 @@ foreign class Sprite {
     foreign height
 }
 
+foreign class Sprite9Slice {
+    construct new(texture, x, y, w, h) { init_(texture, x, y, w, h) }
+
+    foreign init_(texture, x, y, w, h)
+
+    foreign setInsets(left, top, right, bottom)
+    foreign render(x, y, width, height)
+
+    foreign setTexture(texture)
+    foreign setTextureRect(x, y, w, h)
+    foreign setColor(color)
+    foreign setZ(z)
+    foreign setBlendMode(blend)
+
+    foreign width
+    foreign height
+}
+
 foreign class Animation {
     construct new(texture, nframes, fps, x, y, w, h) {
         init_(texture, nframes, fps, x, y, w, h)
