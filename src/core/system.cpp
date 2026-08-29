@@ -366,6 +366,7 @@ BSGL_Impl::BSGL_Impl() {
     fDeltaTime = 0.0f;
     nFPS = 0;
     nPolyMode = 0;
+    bDebugWireframe = false;
     window = nullptr;
     gl_context = nullptr;
     audio = nullptr;

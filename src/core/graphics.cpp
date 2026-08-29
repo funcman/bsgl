@@ -53,7 +53,13 @@ void CALL BSGL_Impl::Gfx_Clear(DWORD color) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
-bool CALL BSGL_Impl::Gfx_BeginScene() {
+bool CALL BSGL_Impl::Gfx_BeginScene(bool debug) {
+    bDebugWireframe = debug;
+    if (debug) {
+        glEnable(GL_TEXTURE_2D);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        return true;
+    }
     switch( nPolyMode ) {
     default:
     case 0:
@@ -74,6 +80,10 @@ bool CALL BSGL_Impl::Gfx_BeginScene() {
 
 void CALL BSGL_Impl::Gfx_EndScene() {
     _render_batch(true);
+    if (bDebugWireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        bDebugWireframe = false;
+    }
 }
 
 void CALL BSGL_Impl::Gfx_RenderTriple(const bsglTriple* triple) {

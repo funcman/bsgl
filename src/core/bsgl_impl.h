@@ -65,7 +65,7 @@ public:
     virtual float       CALL Timer_GetDelta();
     virtual int         CALL Timer_GetFPS();
 
-    virtual bool        CALL Gfx_BeginScene();
+    virtual bool        CALL Gfx_BeginScene(bool debug = false);
     virtual void        CALL Gfx_EndScene();
     virtual void        CALL Gfx_Clear(DWORD color);
     virtual void        CALL Gfx_RenderTriple(const bsglTriple* triple);
@@ -166,6 +166,7 @@ private:
     int         CurBlendMode;
     HTEXTURE    CurTexture;
     int         nPolyMode;
+    bool        bDebugWireframe;
 
     int         nLFPS;          // Number of logic frames per second
     int         nRFPS;          // Number of render frames per second

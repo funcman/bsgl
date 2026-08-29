@@ -251,6 +251,7 @@ class Channel {
 
 class Gfx {
     foreign static beginScene
+    foreign static beginScene(debug)
     foreign static endScene
     foreign static clear(color)
     foreign static setClipping(x, y, w, h)

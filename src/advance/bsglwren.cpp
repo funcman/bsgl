@@ -370,6 +370,7 @@ static void InpMouseX(WrenVM*)  { wrenSetSlotDouble(S->vm, 0, S->bsgl->Control_G
 static void InpMouseY(WrenVM*)  { wrenSetSlotDouble(S->vm, 0, S->bsgl->Control_GetMouseY()); }
 
 static void GfxBegin(WrenVM*)   { S->bsgl->Gfx_BeginScene(); }
+static void GfxBeginD(WrenVM*)  { S->bsgl->Gfx_BeginScene(ArgB(1)); }
 static void GfxEnd(WrenVM*)     { S->bsgl->Gfx_EndScene(); }
 static void GfxClear(WrenVM*)   { S->bsgl->Gfx_Clear(ArgColor(1)); }
 static void GfxClip(WrenVM*)    { S->bsgl->Gfx_SetClipping(ArgI(1), ArgI(2), ArgI(3), ArgI(4)); }
@@ -1020,6 +1021,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
 
     // --- Gfx --------------------------------------------------------
     if (Match(className, isStatic, signature, "Gfx", true, "beginScene"))           return GfxBegin;
+    if (Match(className, isStatic, signature, "Gfx", true, "beginScene(_)"))        return GfxBeginD;
     if (Match(className, isStatic, signature, "Gfx", true, "endScene"))             return GfxEnd;
     if (Match(className, isStatic, signature, "Gfx", true, "clear(_)"))             return GfxClear;
     if (Match(className, isStatic, signature, "Gfx", true, "setClipping(_,_,_,_)")) return GfxClip;
