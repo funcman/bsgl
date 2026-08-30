@@ -1407,7 +1407,7 @@ static WrenForeignMethodFn BindForeignMethod(WrenVM*,
     if (Match(className, isStatic, signature, "GUIButton", false, "addKid(_)"))        return WidAddKid;
     if (Match(className, isStatic, signature, "GUIButton", false, "render(_,_)"))      return WidRender;
     if (Match(className, isStatic, signature, "GUIButton", false, "mouseAt(_,_,_)"))   return WidMouseAt;
-    if (Match(className, isStatic, signature, "GUIButton", false, "testAt(_,_,_)"))    return WidTestAt;
+    if (Match(className, isStatic, signature, "GUIButton", false, "testAt(_,_)"))      return WidTestAt;
 
     // --- GUISlider --------------------------------------------------
     if (Match(className, isStatic, signature, "GUISlider", true, "allocate"))          return SldAllocate;
