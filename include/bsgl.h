@@ -17,7 +17,11 @@
 ** Common data types
 */
 #ifndef DWORD
-typedef unsigned long       DWORD;
+#ifdef _WIN32
+typedef unsigned long       DWORD;  // 32-bit on Windows; matches windows.h
+#else
+typedef unsigned int        DWORD;  // unsigned long is 64-bit on LP64
+#endif
 typedef unsigned short      WORD;
 typedef unsigned char       BYTE;
 #endif
